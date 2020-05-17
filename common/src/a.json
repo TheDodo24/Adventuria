@@ -1,0 +1,12 @@
+{
+  "name": "TheDodo24",
+  "balance": 8374.24,
+  "jail": {
+    "total": 20,
+    "done": 12
+  },
+  "highestGroup": "Developer",
+  "permUser": {
+
+  }
+}
