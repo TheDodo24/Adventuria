@@ -65,16 +65,10 @@ public class OntimeCommand implements CommandExecutor, TabCompleter {
                 User u = Common.getInstance().getManager().getPlayerManager().getByName(args[0]);
                 if(u != null) {
                     Common.getInstance().checkTime();
-                    long currentOntime = System.currentTimeMillis() - Common.getInstance().getPlayerOnline().get(u.getKey());
-                    long afkTime = 0;
-                    if(Common.getInstance().getAfkPlayer().containsKey(u.getKey())) {
-                        afkTime = Common.getInstance().getAfkPlayer().get(u.getKey());
-                        currentOntime -= afkTime;
-                    }
-                    long total = u.getTotalOntime() + currentOntime;
-                    long week = u.getWeekOntime() + currentOntime;
-                    long day = u.getDayOntime() + currentOntime;
-                    long totalAfk = u.getAfkTime() + afkTime;
+                    long total = u.getTotalOntime();
+                    long week = u.getWeekOntime();
+                    long day = u.getDayOntime();
+                    long totalAfk = u.getAfkTime();
                     s.sendMessage(prefix + "§a" + u.getName() + " §7hat folgende §aOntime§7:\n" +
                             "§7» Insgesamt: §a" + TimeFormat.getString(total) + "\n" +
                             "§7» Diese Woche: §a" + TimeFormat.getString(week) + "\n" +

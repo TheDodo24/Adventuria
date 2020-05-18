@@ -426,6 +426,9 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                     }
                                     if(value > 0) {
                                         bankAccount.depositMoney(value);
+                                        BankAccount staatskasse = Common.getInstance().getManager().getBankManager().get("staatskasse");
+                                        staatskasse.withdrawMoney(value);
+                                        Common.getInstance().getManager().getBankManager().save(staatskasse);
                                         Common.getInstance().getManager().getBankManager().save(bankAccount);
                                         s.sendMessage(prefix + "§2" + formatValue(((Long) value).doubleValue() / 100) + "§7 wurden auf das Konto §2" + name + " §7überwiesen.");
                                     } else {
@@ -456,6 +459,9 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                     if(value > 0) {
                                         if((bankAccount.getBalance() - value) >= 0) {
                                             bankAccount.withdrawMoney(value);
+                                            BankAccount staatskasse = Common.getInstance().getManager().getBankManager().get("staatskasse");
+                                            staatskasse.depositMoney(value);
+                                            Common.getInstance().getManager().getBankManager().save(staatskasse);
                                             Common.getInstance().getManager().getBankManager().save(bankAccount);
                                             s.sendMessage(prefix + "§2" + formatValue(((Long) value).doubleValue() / 100) + " §7wurden dem Konto §2" + name + " §7genommen.");
                                         } else {
@@ -487,7 +493,15 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                         return false;
                                     }
                                     if(value >= 0) {
+                                        long old = bankAccount.getBalance();
                                         bankAccount.setBalance(value);
+                                        BankAccount staatskasse = Economy.getInstance().getManager().getBankManager().get("staatskasse");
+                                        if((old - value) > 0) {
+                                            staatskasse.depositMoney(old-value);
+                                        } else {
+                                            staatskasse.withdrawMoney(value - old);
+                                        }
+                                        Common.getInstance().getManager().getBankManager().save(staatskasse);
                                         Common.getInstance().getManager().getBankManager().save(bankAccount);
                                         s.sendMessage(prefix + "§7Der Kontostand vom Konto §2" + name + " §7wurde auf §2" + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
                                     } else {
@@ -642,7 +656,8 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                     if(bAcc.getOwners().contains(p.getUniqueId())) {
                                         owner.add(bAcc);
                                     } else {
-                                        member.add(bAcc);
+                                        if(!Common.getInstance().getTeamAccounts().contains(bAcc.getKey()))
+                                            member.add(bAcc);
                                     }
                                 });
                                 p.sendMessage("§7|----| §2Bank-Konten §7|----|");
@@ -667,21 +682,21 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                             }
                         }
                     } else if(args.length == 2) {
-                        if(args[0].equalsIgnoreCase("create")) {
+                        if (args[0].equalsIgnoreCase("create")) {
                             String name = args[1];
-                            if(name.length() <= 16) {
-                                if(!(name.contains("ä") || name.contains("ö") || name.contains("ü") || name.contains("ß"))) {
+                            if (name.length() <= 16) {
+                                if (!(name.contains("ä") || name.contains("ö") || name.contains("ü") || name.contains("ß"))) {
                                     int size = Economy.getInstance().getManager().getBankManager().getOwnerBankAccounts(p.getUniqueId()).size();
-                                    if(size < 3) {
+                                    if (size < 3) {
                                         User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
                                         BankAccount testAccount = Economy.getInstance().getManager().getBankManager().get(name.toLowerCase());
-                                        if(testAccount == null) {
-                                            switch(size) {
+                                        if (testAccount == null) {
+                                            switch (size) {
                                                 case 0:
                                                     p.sendMessage(prefix + "§7Dein erstes Bankkonto §2" + name + " §7wurde §2kostenlos §7erstellt.");
                                                     break;
                                                 case 1:
-                                                    if((user.getBalance() - 500000) >= 0) {
+                                                    if ((user.getBalance() - 500000) >= 0) {
                                                         p.sendMessage(prefix + "§7Dein zweites Bankkonto §2" + name + " §7wurde für einen Aufpreis von §25.000 A §7erstellt.");
                                                         user.withdrawMoney(500000);
                                                         Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(500000);
@@ -691,7 +706,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                                     }
                                                     break;
                                                 case 2:
-                                                    if((user.getBalance() - 1000000) >= 0) {
+                                                    if ((user.getBalance() - 1000000) >= 0) {
                                                         p.sendMessage(prefix + "§7Dein drittes Bankkonto §2" + name + " §7wurde für einen Aufpreis von §210.000 A §7erstellt.");
                                                         user.withdrawMoney(1000000);
                                                         Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(1000000);
@@ -721,6 +736,35 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                 }
                             } else {
                                 p.sendMessage(prefix + "§7Der Name darf maximal §216 Zeichen §7lang sein.");
+                            }
+                        } else if(args[0].equalsIgnoreCase("list")) {
+                            String name = args[1].toLowerCase();
+                            User user = Economy.getInstance().getManager().getPlayerManager().getByName(name);
+                            if(user != null) {
+                                List<BankAccount> bankAccounts = Economy.getInstance().getManager().getBankManager().getBankAccounts(user.getKey());
+                                if(bankAccounts.size() > 0) {
+                                    List<BankAccount> owner = Lists.newArrayList();
+                                    List<BankAccount> member = Lists.newArrayList();
+                                    bankAccounts.forEach(bAcc -> {
+                                        if(bAcc.getOwners().contains(user.getKey())) {
+                                            owner.add(bAcc);
+                                        } else {
+                                            if(!Common.getInstance().getTeamAccounts().contains(bAcc.getKey()))
+                                                member.add(bAcc);
+                                        }
+                                    });
+                                    p.sendMessage("§7|----| §2Bank-Konten von " + user.getName() +" §7|----|");
+                                    if(owner.size() > 0) {
+                                        owner.forEach(account -> p.sendMessage("§7» §2" + account.getKey() + "§7: " + formatValue(((Long) account.getBalance()).doubleValue() / 100) + " §7| §4Inhaber"));
+                                    }
+                                    if(member.size() > 0) {
+                                        member.forEach(account -> p.sendMessage("§7» §2" + account.getKey() + "§7: " + formatValue(((Long) account.getBalance()).doubleValue() / 100) + " §7| §6Teilhaber"));
+                                    }
+                                } else {
+                                    p.sendMessage(prefix + "§7Der Spieler §2" + name + " §7existiert nicht.");
+                                }
+                            } else {
+                                p.sendMessage(prefix + "§7Der Spieler §2" + name + " §7existiert nicht.");
                             }
                         } else if(args[0].equalsIgnoreCase("balance") || args[0].equalsIgnoreCase("bal")) {
                             String name = args[1].toLowerCase();

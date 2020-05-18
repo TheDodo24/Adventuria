@@ -47,6 +47,7 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                 }
                 if(p.hasPermission("tlohn.admin")) {
                     p.sendMessage("\n");
+                    p.sendMessage(prefix + "§c/tlohn list §7| Listet die Teams auf");
                     p.sendMessage(prefix + "§c/tlohn give [Team] [Betrag] §7| Gibt dem Teamkonto den Betrag.");
                     p.sendMessage(prefix + "§c/tlohn take [Team] [Betrag] §7| Nimmt dem Teamkonto den Betrag.");
                     p.sendMessage(prefix + "§c/tlohn set [Team] [Betrag] §7| Setzt das Teamkonto auf den Betrag.");
@@ -74,6 +75,10 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                     }
                 } else {
                     s.sendMessage("Du musst ein Spieler sein.");
+                }
+            } else if(args[0].equalsIgnoreCase("list")) {
+                if(s.hasPermission("tlohn.admin")) {
+                    s.sendMessage(prefix + Common.getInstance().getTeamAccounts().stream().map(name -> name.split("-")[1]).collect(Collectors.joining(", ")));
                 }
             } else {
                 sendHelpMessage(s);
@@ -217,8 +222,20 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
             Player p = (Player) s;
             BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().getAccountForPlayer(p);
             if(args.length == 1) {
-                if(teamAccount != null)
-                    return Lists.newArrayList("balance");
+                List<String> returnAble = Lists.newArrayList();
+                if(teamAccount != null) {
+                    returnAble.add("balance");
+                    if(teamAccount.getMembers().contains(p.getUniqueId()))
+                        returnAble.add("pay");
+                }
+                if(p.hasPermission("tlohn.admin")) {
+                    returnAble.add("balance");
+                    returnAble.add("give");
+                    returnAble.add("set");
+                    returnAble.add("take");
+                    returnAble.add("sethead");
+                }
+                return returnAble;
             } else if(args.length == 2) {
                 switch(args[0].toLowerCase()) {
                     case "balance":

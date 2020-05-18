@@ -63,7 +63,7 @@ public class PlayerListeners implements Listener {
                                     if(item.getType().equals(Material.PLAYER_HEAD)) {
                                         if(item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
                                             if(displayName.equalsIgnoreCase("§aBankkonto erstellen")) {
-                                                int size = Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).size();
+                                                int size = Economy.getInstance().getManager().getBankManager().getOwnerBankAccounts(p.getUniqueId()).size();
                                                 p.closeInventory();
                                                 if(size < 3) {
                                                     if(Economy.getInstance().getChatListenerCreate().contains(p.getUniqueId()) || Economy.getInstance().getChatListenerTransfer().containsKey(p.getUniqueId())) {
