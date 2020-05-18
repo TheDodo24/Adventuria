@@ -7,6 +7,7 @@ import de.thedodo24.commonPackage.player.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -67,6 +68,11 @@ public class JailCommand implements CommandExecutor, TabCompleter {
                             if (all.hasPermission("jail.notify"))
                                 all.sendMessage(prefix + "§c" + finalName + " §7wurde durch §c" + s.getName() + " §7aus den Sozialstunden befreit.");
                         });
+                        if(Jail.getInstance().getDestroyedBlocks().containsKey(u.getKey())) {
+                            List<Block> blockList = Jail.getInstance().getDestroyedBlocks().get(u.getKey());
+                            blockList.forEach(block -> block.setType(Material.OBSIDIAN));
+                            Jail.getInstance().getDestroyedBlocks().remove(u.getKey());
+                        }
                     } else {
                         s.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7ist nicht eingesperrt.");
                     }
@@ -76,7 +82,6 @@ public class JailCommand implements CommandExecutor, TabCompleter {
             } else if(args[0].equalsIgnoreCase("info")) {
                 if(s.hasPermission("jail.info")) {
                     String name = args[1];
-                    UUID uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
                     User u = Jail.getInstance().getManager().getPlayerManager().getByName(name);
                     if(u.isJailed()) {
                         s.sendMessage(prefix + "§c" + name + " §7ist noch für §5" + u.getDestroyedJailBlocks() + "§7/§5" + u.getMaxJailBlocks() + " Blöcken §7eingesperrt.");

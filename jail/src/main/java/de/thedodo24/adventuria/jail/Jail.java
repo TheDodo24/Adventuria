@@ -1,5 +1,6 @@
 package de.thedodo24.adventuria.jail;
 
+import com.google.common.collect.Lists;
 import de.thedodo24.adventuria.jail.commands.JailCommand;
 import de.thedodo24.adventuria.jail.listener.PlayerListener;
 import de.thedodo24.adventuria.jail.listener.WorldEvents;
@@ -13,6 +14,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -20,10 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @ModuleSettings
@@ -41,6 +40,7 @@ public class Jail extends Module {
     private ItemMeta diamondPickaxeMeta;
     private NamespacedKey namespacedKey;
     private final Map<UUID, BossBar> bossBarMap = new HashMap<>();
+    private Map<UUID, List<Block>> destroyedBlocks = new HashMap<>();
 
     @Override
     public void onEnable() {

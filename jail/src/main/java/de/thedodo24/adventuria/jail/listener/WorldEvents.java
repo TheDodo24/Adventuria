@@ -6,21 +6,25 @@ import de.thedodo24.commonPackage.player.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 public class WorldEvents implements Listener {
 
     private String prefix = "§7§l| §cSozialstunden §7» ";
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGH)
     public void onBlockBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
         User u = Jail.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
@@ -29,6 +33,12 @@ public class WorldEvents implements Listener {
             Location jail = Jail.getInstance().getManager().getJailManager().getLocation("location");
             if(e.getBlock().getType().equals(Material.OBSIDIAN) && p.getLocation().getWorld().equals(jail.getWorld())) {
                 e.getBlock().setType(Material.AIR);
+                if(Jail.getInstance().getDestroyedBlocks().containsKey(p.getUniqueId())){
+                    List<Block> blocks = Jail.getInstance().getDestroyedBlocks().get(p.getUniqueId());
+                    blocks.add(e.getBlock());
+                    Jail.getInstance().getDestroyedBlocks().replace(p.getUniqueId(), blocks);
+                } else
+                    Jail.getInstance().getDestroyedBlocks().put(p.getUniqueId(), Lists.newArrayList(e.getBlock()));
                 int blocks = u.getDestroyedJailBlocks();
                 blocks -= 1;
                 if(blocks < 1) {
@@ -44,6 +54,11 @@ public class WorldEvents implements Listener {
                         if(all.hasPermission("jail.notify"))
                             all.sendMessage(prefix + "§c" + p.getName() + " §7hat seine §cSozialstunden §7abgesessen");
                     });
+                    if(Jail.getInstance().getDestroyedBlocks().containsKey(p.getUniqueId())) {
+                        List<Block> blockList = Jail.getInstance().getDestroyedBlocks().get(p.getUniqueId());
+                        blockList.forEach(block -> block.setType(Material.OBSIDIAN));
+                        Jail.getInstance().getDestroyedBlocks().remove(p.getUniqueId());
+                    }
                 } else {
                     u.setJailed(blocks);
                     BossBar bossBar;

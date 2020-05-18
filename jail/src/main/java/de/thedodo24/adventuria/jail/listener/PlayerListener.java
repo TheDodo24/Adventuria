@@ -5,6 +5,8 @@ import de.thedodo24.adventuria.jail.Jail;
 import de.thedodo24.commonPackage.player.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -16,6 +18,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.List;
 import java.util.UUID;
 
 public class PlayerListener implements Listener {
@@ -42,6 +45,11 @@ public class PlayerListener implements Listener {
                         all.sendMessage(prefix + "§c" + p.getName() + " §7hat seine Sozialstunden abgesessen.");
                     }
                 });
+                if(Jail.getInstance().getDestroyedBlocks().containsKey(p.getUniqueId())) {
+                    List<Block> blockList = Jail.getInstance().getDestroyedBlocks().get(p.getUniqueId());
+                    blockList.forEach(block -> block.setType(Material.OBSIDIAN));
+                    Jail.getInstance().getDestroyedBlocks().remove(p.getUniqueId());
+                }
             } else {
                 if (!p.getLocation().getWorld().equals(jail.getWorld())) {
                     p.teleport(jail);
