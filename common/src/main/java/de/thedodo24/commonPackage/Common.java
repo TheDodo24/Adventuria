@@ -152,8 +152,8 @@ public class Common extends Module {
             long ontime = System.currentTimeMillis() - Common.getInstance().getPlayerOnline().get(all.getUniqueId());
             long afkTime = 0;
             if(Common.getInstance().getAfkPlayer().containsKey(all.getUniqueId())) {
-                afkTime = Common.getInstance().getAfkPlayer().get(all.getUniqueId());
-                ontime -= (System.currentTimeMillis() - afkTime);
+                afkTime = System.currentTimeMillis() - Common.getInstance().getAfkPlayer().get(all.getUniqueId());
+                ontime -= afkTime;
                 Common.getInstance().getAfkPlayer().remove(all.getUniqueId());
             }
             u.updateOntime(ontime);

@@ -11,8 +11,10 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class OntimeCommand implements CommandExecutor, TabCompleter {
@@ -61,6 +63,11 @@ public class OntimeCommand implements CommandExecutor, TabCompleter {
                 } else {
                     s.sendMessage("Du musst ein Spieler sein");
                 }
+            } else if(args[0].equalsIgnoreCase("top")) {
+                LinkedHashMap<User, Long> map = Common.getInstance().getManager().getPlayerManager().getHighestOntime();
+                s.sendMessage("§7|-----| §aTop 10 Ontime §7|-----|");
+                AtomicInteger a = new AtomicInteger(1);
+                map.forEach((key, val) -> s.sendMessage("§7"+a.getAndIncrement()+". §a" + key.getName() + "§7: " + TimeFormat.getInDays(val)));
             } else {
                 User u = Common.getInstance().getManager().getPlayerManager().getByName(args[0]);
                 if(u != null) {
@@ -69,6 +76,18 @@ public class OntimeCommand implements CommandExecutor, TabCompleter {
                     long week = u.getWeekOntime();
                     long day = u.getDayOntime();
                     long totalAfk = u.getAfkTime();
+                    if(Bukkit.getPlayer(u.getKey()) != null) {
+                        long currentOntime = System.currentTimeMillis() - Common.getInstance().getPlayerOnline().get(u.getKey());
+                        long afkTime = 0;
+                        if(Common.getInstance().getAfkPlayer().containsKey(u.getKey())) {
+                            afkTime = Common.getInstance().getAfkPlayer().get(u.getKey());
+                            currentOntime -= afkTime;
+                        }
+                        total += currentOntime;
+                        week += currentOntime;
+                        day += currentOntime;
+                        totalAfk += afkTime;
+                    }
                     s.sendMessage(prefix + "§a" + u.getName() + " §7hat folgende §aOntime§7:\n" +
                             "§7» Insgesamt: §a" + TimeFormat.getString(total) + "\n" +
                             "§7» Diese Woche: §a" + TimeFormat.getString(week) + "\n" +
@@ -113,10 +132,10 @@ public class OntimeCommand implements CommandExecutor, TabCompleter {
                     s.sendMessage(prefix + "§7Du musst ein Spieler sein.");
                 }
             } else {
-                s.sendMessage(prefix + "§a/ontime <[Spieler]/history> <Spieler>");
+                s.sendMessage(prefix + "§a/ontime <[Spieler]/history/top> <Spieler>");
             }
         } else {
-            s.sendMessage(prefix + "§a/ontime <[Spieler]/history> <Spieler>");
+            s.sendMessage(prefix + "§a/ontime <[Spieler]/history/top> <Spieler>");
         }
         return false;
     }
@@ -125,11 +144,12 @@ public class OntimeCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender s, Command cmd, String label, String[] args) {
         if(s instanceof Player) {
             if(args.length == 1) {
-                List<String> returnAble = Lists.newArrayList("history");
+                List<String> returnAble = Lists.newArrayList("history", "top");
                 returnAble.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
                 return returnAble;
             } else if(args.length == 2) {
-                return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                if(args[0].equalsIgnoreCase("history"))
+                    return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
             }
         }
         return Lists.newArrayList();

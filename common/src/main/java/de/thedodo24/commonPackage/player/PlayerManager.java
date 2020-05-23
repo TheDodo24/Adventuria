@@ -5,14 +5,12 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.util.MapBuilder;
 import com.arangodb.velocypack.VPackSlice;
 import com.google.common.collect.Lists;
+import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.CollectionManager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 public class PlayerManager extends CollectionManager<User, UUID> {
@@ -40,6 +38,51 @@ public class PlayerManager extends CollectionManager<User, UUID> {
             return this.getOrGenerate(uniqueId);
         }
         return null;
+    }
+
+    public LinkedHashMap<User, Long> getHighestOntime() {
+        List<User> users = getUsers();
+        HashMap<UUID, Long> totalOntime = new HashMap<>();
+        users.forEach(user -> {
+            if(Common.getInstance().getPlayerOnline().containsKey(user.getKey())) {
+                long currentTime = System.currentTimeMillis();
+                long ontime = currentTime - Common.getInstance().getPlayerOnline().get(user.getKey());
+                if(Common.getInstance().getAfkPlayer().containsKey(user.getKey())) {
+                    ontime -= Common.getInstance().getAfkPlayer().get(user.getKey());
+                }
+                totalOntime.put(user.getKey(), ontime + user.getTotalOntime());
+            } else {
+                totalOntime.put(user.getKey(), user.getTotalOntime());
+            }
+        });
+        List<UUID> mapKeys = new ArrayList<>(totalOntime.keySet());
+        List<Long> mapValues = new ArrayList<>(totalOntime.values());
+        Collections.sort(mapValues);
+        Collections.sort(mapKeys);
+        Collections.reverse(mapKeys);
+        Collections.reverse(mapValues);
+
+        LinkedHashMap<User, Long> sortedMap = new LinkedHashMap<>();
+
+        for (Long val : mapValues) {
+            Iterator<UUID> keyIt = mapKeys.iterator();
+
+            while (keyIt.hasNext()) {
+                UUID key = keyIt.next();
+                long comp1 = totalOntime.get(key);
+                long comp2 = val;
+                if (comp1 == comp2) {
+                    keyIt.remove();
+                    if (sortedMap.size() <= 10) {
+                        sortedMap.put(get(key), val);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return sortedMap;
     }
 
     public List<User> getUsers() {
