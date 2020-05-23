@@ -39,6 +39,8 @@ public class Economy extends Module {
     private List<UUID> chatListenerCreate;
     private Map<UUID, String> chatListenerTransfer;
 
+    private List<String> charList;
+
     public Economy(ModuleSettings settings, ModuleManager manager, JavaPlugin plugin) {
         super(settings, manager, plugin);
 
@@ -61,6 +63,9 @@ public class Economy extends Module {
         armorStandAddList = Lists.newArrayList();
         armorStandDelList = Lists.newArrayList();
         chatListenerCreate = Lists.newArrayList();
+        charList = Lists.newArrayList("!", "\"", "§", "$", "%", "&", "/",
+                "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", "_", "-", ":", ".", ";",
+                ",", "<", ">", "~", "\\", "}", "]", "[", "{", "³", "²", "^", "°", "ß", "ü", "ä", "ö", "Ä", "Ö", "Ü");
         chatListenerTransfer = new HashMap<>();
         registerCommands();
         Bukkit.getPluginManager().registerEvents(new PlayerListeners(), getPlugin());
