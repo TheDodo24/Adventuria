@@ -3,8 +3,10 @@ package de.thedodo24.commonPackage.economy;
 import com.arangodb.entity.BaseDocument;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.arango.ArangoWritable;
+import de.thedodo24.commonPackage.utils.ScoreboardManager;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,14 +52,22 @@ public class BankAccount implements ArangoWritable<String> {
 
     public double withdrawMoney(double v) {
         balance -= ((long) (v * 100));
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
         return ((Long) balance).doubleValue() / 100;
     }
 
     public double depositMoney(double v) {
         balance += ((long) v * 100);
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
         return ((Long) balance).doubleValue() / 100;
     }
 
-    public long depositMoney(long v) { return balance += v; }
-    public long withdrawMoney(long v) { return balance -= v; }
+    public long depositMoney(long v) {
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        return balance += v;
+    }
+    public long withdrawMoney(long v) {
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        return balance -= v;
+    }
 }

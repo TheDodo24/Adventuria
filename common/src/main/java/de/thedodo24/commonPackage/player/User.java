@@ -90,20 +90,20 @@ public class User implements ArangoWritable<UUID> {
     public long depositMoney(long v) {
         long finalBalance = v + (long) getProperty("moneyBalance");
         updateProperty("moneyBalance", finalBalance);
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
         return finalBalance;
     }
 
     public long withdrawMoney(long v) {
         long finalBalance = (long) getProperty("moneyBalance") - v;
         updateProperty("moneyBalance", finalBalance);
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
         return finalBalance;
     }
 
     public long setBalance(long v) {
         updateProperty("moneyBalance", v);
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
         return v;
     }
 
@@ -127,6 +127,7 @@ public class User implements ArangoWritable<UUID> {
         deleteProperty("jail");
     }
 
+
     public int getDestroyedJailBlocks() {
         if(this.values.containsKey("jail"))
             return ((Map<String, Integer>) getProperty("jail")).get("destroyed");
@@ -137,6 +138,46 @@ public class User implements ArangoWritable<UUID> {
         if(this.values.containsKey("jail"))
             return ((Map<String, Integer>) getProperty("jail")).get("max");
         return 0;
+    }
+
+    public boolean isCustomScoreboard() {
+        return isSetProperty("scoreboard");
+    }
+
+    public void setCustomScoreboard(CustomScoreboardType type, String value) {
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put(type.toString(), value);
+        if(isSetProperty("scoreboard")) {
+            ((Map<String, String>) getProperty("scoreboard")).forEach((key, val) -> {
+                if(!parameters.containsKey(key))
+                    parameters.put(key, val);
+            });
+        }
+        updateProperty("scoreboard", parameters);
+    }
+
+    public void deleteCustomScoreboard() {
+        deleteProperty("scoreboard");
+    }
+
+    public void unSetCustomScoreboard(CustomScoreboardType type) {
+        Map<String, String> parameters = new HashMap<>();
+        ((Map<String, String>) getProperty("scoreboard")).forEach((key, val) -> {
+            if(!key.equalsIgnoreCase(type.toString()))
+                parameters.put(key, val);
+        });
+        if(parameters.size() == 0)
+            deleteProperty("scoreboard");
+        else
+            updateProperty("scoreboard", parameters);
+    }
+
+    public boolean checkCustomScoreboard(CustomScoreboardType type) {
+        return ((Map<String, String>) getProperty("scoreboard")).containsKey(type.toString());
+    }
+
+    public String getCustomScoreboard(CustomScoreboardType type) {
+        return ((Map<String, String>) getProperty("scoreboard")).get(type.toString());
     }
 
     public Map<String, Object> getOntimeMap() {

@@ -4,6 +4,7 @@ import com.arangodb.ArangoDatabase;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.commands.CacheCommand;
 import de.thedodo24.commonPackage.commands.OntimeCommand;
+import de.thedodo24.commonPackage.commands.ScoreboardCommand;
 import de.thedodo24.commonPackage.commands.TrojanerCommand;
 import de.thedodo24.commonPackage.listener.PlayerListener;
 import de.thedodo24.commonPackage.module.ModuleSettings;
@@ -112,6 +113,7 @@ public class Common extends Module {
         new OntimeCommand();
         new TrojanerCommand();
         new CacheCommand();
+        new ScoreboardCommand();
         if(Bukkit.getOnlinePlayers().size() > 0) {
             Bukkit.getOnlinePlayers().forEach(all -> {
                 new ScoreboardManager(all);
@@ -158,9 +160,5 @@ public class Common extends Module {
             u.updateAfkTime(afkTime);
             Common.getInstance().getPlayerOnline().remove(all.getUniqueId());
         });
-        getManager().getPlayerManager().disableSave();
-        getManager().getBankManager().disableSave();
-        getManager().getArmorStandManager().disableSave();
-        getManager().getJailManager().disableSave();
     }
 }

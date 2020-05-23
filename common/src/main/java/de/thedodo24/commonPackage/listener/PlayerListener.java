@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.CollectionManager;
 import de.thedodo24.commonPackage.player.User;
+import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import de.thedodo24.commonPackage.utils.ScoreboardManager;
 import de.thedodo24.commonPackage.utils.SkullItems;
 import de.thedodo24.commonPackage.utils.TimeFormat;
@@ -39,7 +40,9 @@ public class PlayerListener implements Listener {
         Common.getInstance().getPlayerOnline().put(p.getUniqueId(), System.currentTimeMillis());
         Common.getInstance().checkTime();
         new ScoreboardManager(p);
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        //new ManagerScoreboard(p);
+        //ManagerScoreboard.getScoreboardMap().forEach((key, val) -> p.setScoreboard(val.getBoard().getScoreboard()));
     }
 
     @EventHandler
@@ -129,7 +132,7 @@ public class PlayerListener implements Listener {
         Common.getInstance().getPlayerOnline().remove(p.getUniqueId());
         Common.getInstance().getManager().getPlayerManager().update(u);
         ScoreboardManager.getScoreboardMap().remove(p.getUniqueId());
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
+        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size() - 1));
     }
 
 }

@@ -3,6 +3,7 @@ package de.thedodo24.commonPackage.module;
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
+import de.thedodo24.commonPackage.classes.MySQL;
 import de.thedodo24.commonPackage.economy.ArmorStandHandler;
 import de.thedodo24.commonPackage.economy.ArmorStandManager;
 import de.thedodo24.commonPackage.economy.BankManager;
@@ -27,9 +28,10 @@ public class ModuleManager {
     private BankManager bankManager;
     private ArmorStandManager armorStandManager;
     private JailManager jailManager;
+    private MySQL mySQL;
 
 
-    public ModuleManager(String collection, ArangoDatabase database, JavaPlugin plugin) {
+    public ModuleManager(String collection, ArangoDatabase database, JavaPlugin plugin, MySQL mySQL) {
         if(!database.collection(collection).exists()) {
             database.createCollection(collection);
         }
@@ -41,6 +43,7 @@ public class ModuleManager {
         this.bankManager = new BankManager(database);
         this.armorStandManager = new ArmorStandManager(database);
         this.jailManager = new JailManager(database);
+        this.mySQL = mySQL;
     }
 
     @SafeVarargs
