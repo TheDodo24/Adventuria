@@ -91,7 +91,7 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
         User u = Jail.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
         if(u.isJailed()) {
-            if(!p.hasPermission("jail.bypass")) {
+            if(!p.hasPermission("jail.bypass") && !e.getMessage().startsWith("/login")) {
                 e.setCancelled(true);
                 p.sendMessage(prefix + "§7Du darfst während der §cSozialstunden §7keine Befehle ausführen.");
             }
