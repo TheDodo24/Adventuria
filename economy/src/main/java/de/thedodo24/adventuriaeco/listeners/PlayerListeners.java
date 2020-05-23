@@ -2,6 +2,7 @@ package de.thedodo24.adventuriaeco.listeners;
 
 import com.google.common.collect.Lists;
 import de.thedodo24.adventuriaeco.Economy;
+import de.thedodo24.commonPackage.classes.SimpleInventory;
 import de.thedodo24.commonPackage.economy.BankAccount;
 import de.thedodo24.commonPackage.economy.BankType;
 import de.thedodo24.commonPackage.player.User;
@@ -187,7 +188,9 @@ public class PlayerListeners implements Listener {
                                             } else {
                                                 p.sendMessage(bankPrefix + "§7Du hast keine §3Emeralds §7in deinem Inventar.");
                                             }
-                                        } else if(displayName.equalsIgnoreCase("§bDiamanten umtauschen")) {
+                                        }
+                                    } else if(item.getType().equals(Material.DIAMOND)) {
+                                        if(displayName.equalsIgnoreCase("§bDiamanten umtauschen")) {
                                             PlayerInventory pInventory = p.getInventory();
                                             //List<ItemStack> emeralds = pInventory.all(Material.EMERALD).values().stream().filter(i ->
                                             //        ((!i.getItemMeta().getDisplayName().equalsIgnoreCase("\u00A73250A")) && (!(i.getItemMeta().getPersistentDataContainer().has(Economy.getInstance().getNamespacedKey(), PersistentDataType.STRING)
@@ -236,7 +239,7 @@ public class PlayerListeners implements Listener {
                                                                         }
                                                                     }
                                                                 });
-                                                        p.sendMessage(bankPrefix + "§7Du hast §25 Emeralds §7umgetauscht.");
+                                                        p.sendMessage(bankPrefix + "§7Du hast §b5 Diamanten §7umgetauscht.");
                                                         ItemStack itemStack = new ItemBuilder(new ItemStack(Material.EMERALD)).modify().setDisplayName("§3250A").build();
                                                         if(pInventory.getItem(place.get()) != null)
                                                             itemStack.setAmount(pInventory.getItem(place.get()).getAmount() + 1);
@@ -251,7 +254,7 @@ public class PlayerListeners implements Listener {
                                                         p.sendMessage(bankPrefix + "§7Du hast kein Platz in deinem Inventar.");
                                                     }
                                                 } else {
-                                                    p.sendMessage(bankPrefix + "§7Du hast nicht mindestens §a5 Emeralds §7in deinem Inventar.");
+                                                    p.sendMessage(bankPrefix + "§7Du hast nicht mindestens §b5 Diamanten §7in deinem Inventar.");
                                                 }
                                             } else {
                                                 p.sendMessage(bankPrefix + "§7Du hast keine §bDiamanten §7in deinem Inventar.");
@@ -476,25 +479,27 @@ public class PlayerListeners implements Listener {
                                 if(item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
                                     p.closeInventory();
                                     String bankAccount = title.substring(5);
-                                    int value = 0;
-                                    try {
-                                        value = Integer.parseInt(item.getItemMeta().getDisplayName().substring(2, item.getItemMeta().getDisplayName().length() - 2).replace(".", ""));
-                                    } catch(NumberFormatException ignore) {  }
                                     BankAccount account = Economy.getInstance().getManager().getBankManager().get(bankAccount);
                                     if(account != null) {
                                         User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                                        long longValue = ((Integer) value).longValue() * 100;
-                                        long taxes = (long) (longValue * 0.0025);
+                                        long value = 0;
+                                        try {
+                                            if(item.getItemMeta().getDisplayName().equalsIgnoreCase("§2Alles")) {
+                                                value = user.getBalance();
+                                            } else
+                                                value = Integer.parseInt(item.getItemMeta().getDisplayName().substring(2, item.getItemMeta().getDisplayName().length() - 2).replace(".", "")) * 100;
+                                        } catch(NumberFormatException ignore) {  }
+                                        long taxes = (long) (value * 0.0025);
                                         if(taxes == 0)
                                             taxes = 1;
-                                        if((user.getBalance() - longValue) >= 0) {
-                                            user.withdrawMoney(longValue);
-                                            account.depositMoney(longValue - taxes);
+                                        if((user.getBalance() - value) >= 0) {
+                                            user.withdrawMoney(value);
+                                            account.depositMoney(value - taxes);
                                             Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
                                             Economy.getInstance().getManager().getBankManager().save(account);
                                             Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
                                             Economy.getInstance().getManager().getPlayerManager().save(user);
-                                            p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) longValue).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
+                                            p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
                                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                                         } else {
                                             p.sendMessage(bankPrefix + "§7Du hast nicht genügend Geld.");
@@ -510,29 +515,35 @@ public class PlayerListeners implements Listener {
                                 if(item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
                                     p.closeInventory();
                                     String bankAccount = title.substring(5);
-                                    int value = 0;
-                                    try {
-                                        value = Integer.parseInt(item.getItemMeta().getDisplayName().substring(2, item.getItemMeta().getDisplayName().length() - 2).replace(".", ""));
-                                    } catch(NumberFormatException ignore) {  }
                                     BankAccount account = Economy.getInstance().getManager().getBankManager().get(bankAccount);
                                     if(account != null) {
+                                        long value = 0;
+                                        try {
+                                            if(item.getItemMeta().getDisplayName().equalsIgnoreCase("§2Alles"))
+                                                value = account.getBalance();
+                                            else
+                                                value = Integer.parseInt(item.getItemMeta().getDisplayName().substring(2, item.getItemMeta().getDisplayName().length() - 2).replace(".", "")) * 100;
+                                        } catch(NumberFormatException ignore) {  }
                                         User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                                        long longValue = ((Integer) value).longValue() * 100;
-                                        long taxes = (long) (longValue * 0.0025);
+                                        long taxes = (long) (value * 0.0025);
                                         if(taxes == 0)
                                             taxes = 1;
-                                        if((account.getBalance() - longValue) >= 0) {
-                                            account.withdrawMoney(longValue);
-                                            user.depositMoney(longValue - taxes);
+                                        if(item.getItemMeta().getDisplayName().equalsIgnoreCase("§2Alles")) {
+                                            account.withdrawMoney(value);
+                                            user.depositMoney(value - taxes);
+                                        } else if(((account.getBalance() - value) - taxes) >= 0) {
+                                            account.withdrawMoney(value - taxes);
+                                            user.depositMoney(value);
+                                        } else {
+                                            p.sendMessage(bankPrefix + "§7Das Bankkonto hat nicht genügend §2Guthaben§7.");
+                                            return;
+                                        }
                                             Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
                                             Economy.getInstance().getManager().getBankManager().save(account);
                                             Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
                                             Economy.getInstance().getManager().getPlayerManager().save(user);
-                                            p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) longValue).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7abgebucht und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
+                                            p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7abgebucht und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
                                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-                                        } else {
-                                            p.sendMessage(bankPrefix + "§7Das Bankkonto hat nicht genügend §2Guthaben§7.");
-                                        }
                                     } else {
                                         p.sendMessage(bankPrefix + "§7Das Bankkonto §2" + bankAccount + " §7existiert nicht.");
                                     }
@@ -546,30 +557,37 @@ public class PlayerListeners implements Listener {
                                     String[] accounts = title.split("§8-§7");
                                     String accountFrom = accounts[0].substring(5, accounts[0].length() - 1);
                                     String accountTo = accounts[1].substring(1);
-                                    int value = 0;
-                                    try {
-                                        value = Integer.parseInt(item.getItemMeta().getDisplayName().substring(2, item.getItemMeta().getDisplayName().length() - 2).replace(".", ""));
-                                    } catch(NumberFormatException ignore) {  }
+
                                     BankAccount bankAccountFrom = Economy.getInstance().getManager().getBankManager().get(accountFrom);
                                     if(bankAccountFrom != null) {
+                                        long value = 0;
+                                        try {
+                                            if(item.getItemMeta().getDisplayName().equalsIgnoreCase("§2Alles"))
+                                                value = bankAccountFrom.getBalance();
+                                            else
+                                                value = Integer.parseInt(item.getItemMeta().getDisplayName().substring(2, item.getItemMeta().getDisplayName().length() - 2).replace(".", "")) * 100;
+                                        } catch(NumberFormatException ignore) {  }
                                         BankAccount bankAccountTo = Economy.getInstance().getManager().getBankManager().get(accountTo);
                                         if(bankAccountTo != null) {
-                                            long longValue = ((Integer) value).longValue() * 100;
-                                            long taxes = (long) (longValue * 0.0025);
+                                            long taxes = (long) (value * 0.0025);
                                             if(taxes == 0)
                                                 taxes = 1;
-                                            if((bankAccountFrom.getBalance() - longValue) >= 0) {
-                                                bankAccountFrom.withdrawMoney(longValue);
-                                                bankAccountTo.depositMoney(longValue - taxes);
-                                                Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
-                                                Economy.getInstance().getManager().getBankManager().save(bankAccountFrom);
-                                                Economy.getInstance().getManager().getBankManager().save(bankAccountTo);
-                                                Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
-                                                p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) longValue).doubleValue() / 100) + " §7auf das Konto §2" + accountTo + " §7überwiesen und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
-                                                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                                            if(item.getItemMeta().getDisplayName().equalsIgnoreCase("§2Alles")) {
+                                                bankAccountFrom.withdrawMoney(value);
+                                                bankAccountTo.depositMoney(value - taxes);
+                                            } else if(((bankAccountFrom.getBalance() - value) - taxes) >= 0) {
+                                                bankAccountFrom.withdrawMoney(value - taxes);
+                                                bankAccountTo.depositMoney(value);
                                             } else {
                                                 p.sendMessage(bankPrefix + "§7Das Bankkonto hat nicht genügend §2Guthaben§7.");
+                                                return;
                                             }
+                                            Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
+                                            Economy.getInstance().getManager().getBankManager().save(bankAccountFrom);
+                                            Economy.getInstance().getManager().getBankManager().save(bankAccountTo);
+                                            Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
+                                            p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + accountTo + " §7überwiesen und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
+                                            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                                         } else {
                                             p.sendMessage(bankPrefix + "§7Das Bankkonto §2" + accountTo + " §7existiert nicht.");
                                         }
@@ -611,7 +629,7 @@ public class PlayerListeners implements Listener {
             if(msg.split(" ").length == 1) {
                 int size = Economy.getInstance().getManager().getBankManager().getOwnerBankAccounts(p.getUniqueId()).size();
                 if(msg.length() <= 16) {
-                    if(!(msg.contains("ä") || msg.contains("ü") || msg.contains("ö") || msg.contains("ß"))) {
+                    if(Economy.getInstance().getCharList().stream().noneMatch(msg::contains)) {
                         Economy.getInstance().getChatListenerCreate().remove(p.getUniqueId());
                         User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
                         BankAccount testAccount = Economy.getInstance().getManager().getBankManager().get(msg.toLowerCase());
@@ -655,7 +673,7 @@ public class PlayerListeners implements Listener {
                             p.sendMessage(bankPrefix + "§7Ein Bankkonto mit dem Namen §2" + msg.toLowerCase() + " §7existiert bereits.");
                         }
                     } else {
-                        p.sendMessage(bankPrefix + "§7Benutze bitte keine §2Umlaute §7im Kontonamen.");
+                        p.sendMessage(bankPrefix + "§7Du darfst in deinem Kontonamen keine §2Sonderzeichen §7oder §2Umlaute §7verwenden.");
                     }
                 } else {
                     p.sendMessage(bankPrefix + "§7Der Name darf maximal §216 Zeichen §7lang sein.");
@@ -690,7 +708,7 @@ public class PlayerListeners implements Listener {
 
     private Inventory getMoneyInventory(String title) {
         Inventory inv = Bukkit.createInventory(null, 9, title);
-        inv.addItem(SkullItems.getMoneySkull("§21 A"));
+        inv.addItem(SkullItems.getMoneySkull("§2Alles"));
         inv.addItem(SkullItems.getMoneySkull("§210 A"));
         inv.addItem(SkullItems.getMoneySkull("§2100 A"));
         inv.addItem(SkullItems.getMoneySkull("§21.000 A"));
@@ -750,11 +768,11 @@ public class PlayerListeners implements Listener {
                 inv.setItem(23, SkullItems.getRedMinusSkull("§cInhaber entfernen"));
                 inv.setItem(24, SkullItems.getOrangeMinusSkull("§6Teilhaber entfernen"));
                 //inv.setItem(33, SkullItems.getMoneySkull("§aSmaragde verkaufen"));
-                inv.setItem(27, new ItemBuilder(new ItemStack(Material.DIAMOND, 1)).modify().setDisplayName("§bDiamanten umtauschen").build());
+                //inv.setItem(27, new ItemBuilder(new ItemStack(Material.DIAMOND, 1)).modify().setDisplayName("§bDiamanten umtauschen").build());
                 inv.setItem(28, new ItemBuilder(new ItemStack(Material.EMERALD, 1)).modify().setDisplayName("§aSmaragd kaufen").build());
                 inv.setItem(34, new ItemBuilder(new ItemStack(Material.EMERALD, 1)).modify().setDisplayName("§cSmaragd verkaufen").build());
                 for(int i = 27; i < 36; i++) {
-                    if(i != 27 && i != 28 && i != 34)
+                    if(i != 28 && i != 34)
                         inv.setItem(i, new ItemBuilder(new ItemStack(Material.GREEN_STAINED_GLASS_PANE, 1)).modify().setDisplayName(" ").build());
                 }
                 p.openInventory(inv);
