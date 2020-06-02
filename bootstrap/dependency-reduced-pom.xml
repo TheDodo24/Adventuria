@@ -51,7 +51,7 @@
       <artifactId>spigot</artifactId>
       <version>1.15.2-R0.1-SNAPSHOT</version>
       <scope>system</scope>
-      <systemPath>D:/Programmierung/spigot-1.15.2.jar</systemPath>
+      <systemPath>C:/Users/domen/Downloads/spigot-1.15.2.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
