@@ -3,14 +3,79 @@ version: "1.0"
 author: "TheDodo24"
 main: "de.thedodo24.Adventuria.Adventuria"
 api-version: "1.15"
-softdepend: [Vault, Essentials]
+softdepend: [Vault]
+loadbefore: [Essentials]
 
 commands:
   money:
+    description: "Money management. Type '/money help' for help"
   bank:
+    description: "Bank management. Type '/bank help' for help"
   jail:
+    description: "Jail management. Type '/jail help' for help"
   ontime:
+    description: "Ontime command. Type '/ontime help' for help"
   trojaner:
+    description: "Want to be rider of a player? Type '/trojaner <playerName>'"
+    permission: advi.util.trojaner
   cache:
+    description: "Cache management. '/cache unload <player>' for unload"
+    permission: advi.cache
   tlohn:
+    description: "Management of team wage. Type '/tlohn help' for help"
+    permission: tlohn.admin
   sboard:
+    description: "Scoreboard management. Type '/sboard help' for help"
+  countdown:
+    description: "Countdown. Type '/countdown help' for help"
+    aliases: [cd]
+
+permissions:
+  advi.cache:
+    description: "Cache command"
+  advi.util.trojaner:
+    description: "Trojaner command"
+  bank.admin:
+    description: "Help message & tab complete for admin sub commands"
+  bank.addas:
+    description: "/bank admin addas"
+  bank.delas:
+    description: "/bank admin delas"
+  bank.delete:
+    description: "/bank admin delete"
+  bank.give:
+    description: "/bank admin give"
+  bank.take:
+    description: "/bank admin take"
+  bank.set:
+    description: "/bank admin set"
+  bank.addmember:
+    description: "/bank admin addmember"
+  bank.removemember:
+    description: "/bank admin removemember"
+  bank.addowner:
+    description: "/bank admin addowner"
+  bank.removeowner:
+    description: "/bank admin removeowner"
+  money.admin:
+    description: "Help message & tab complete for money commands"
+  money.give:
+    description: "/money give"
+  money.take:
+   description: "/money take"
+  money.set:
+   description: "/money set"
+  money.notify:
+    description: "Money notifications"
+  tlohn.admin:
+    description: "TeamLohn management"
+  jail.free:
+    description: "/jail free"
+  jail.info:
+    description: "/jail info"
+  jail.jail:
+    description: "/jail <player> <blocks>"
+  jail.set:
+    description: "/jail set"
+  jail.notify:
+    description: "Notifications of jail system"
