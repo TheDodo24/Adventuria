@@ -77,16 +77,18 @@ public class OntimeCommand implements CommandExecutor, TabCompleter {
                     long day = u.getDayOntime();
                     long totalAfk = u.getAfkTime();
                     if(Bukkit.getPlayer(u.getKey()) != null) {
-                        long currentOntime = System.currentTimeMillis() - Common.getInstance().getPlayerOnline().get(u.getKey());
-                        long afkTime = 0;
-                        if(Common.getInstance().getAfkPlayer().containsKey(u.getKey())) {
-                            afkTime = Common.getInstance().getAfkPlayer().get(u.getKey());
-                            currentOntime -= afkTime;
+                        if(Common.getInstance().getPlayerOnline().containsKey(u.getKey())) {
+                            long currentOntime = System.currentTimeMillis() - Common.getInstance().getPlayerOnline().get(u.getKey());
+                            long afkTime = 0;
+                            if(Common.getInstance().getAfkPlayer().containsKey(u.getKey())) {
+                                afkTime = System.currentTimeMillis() - Common.getInstance().getAfkPlayer().get(u.getKey());
+                                currentOntime -= afkTime;
+                            }
+                            total += currentOntime;
+                            week += currentOntime;
+                            day += currentOntime;
+                            totalAfk += afkTime;
                         }
-                        total += currentOntime;
-                        week += currentOntime;
-                        day += currentOntime;
-                        totalAfk += afkTime;
                     }
                     s.sendMessage(prefix + "§a" + u.getName() + " §7hat folgende §aOntime§7:\n" +
                             "§7» Insgesamt: §a" + TimeFormat.getString(total) + "\n" +
@@ -146,10 +148,10 @@ public class OntimeCommand implements CommandExecutor, TabCompleter {
             if(args.length == 1) {
                 List<String> returnAble = Lists.newArrayList("history", "top");
                 returnAble.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                return returnAble;
+                return Common.getInstance().removeAutoComplete(returnAble, args[0]);
             } else if(args.length == 2) {
                 if(args[0].equalsIgnoreCase("history"))
-                    return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                    return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
             }
         }
         return Lists.newArrayList();
