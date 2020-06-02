@@ -6,6 +6,7 @@ import com.arangodb.entity.BaseDocument;
 import de.thedodo24.commonPackage.classes.MySQL;
 import de.thedodo24.commonPackage.economy.ArmorStandHandler;
 import de.thedodo24.commonPackage.economy.ArmorStandManager;
+import de.thedodo24.commonPackage.economy.BankLogHandler;
 import de.thedodo24.commonPackage.economy.BankManager;
 import de.thedodo24.commonPackage.jail.JailManager;
 import lombok.AccessLevel;
@@ -26,9 +27,12 @@ public class ModuleManager {
     private Map<String, Module> registeredModules;
     private PlayerManager playerManager;
     private BankManager bankManager;
+    private BankLogHandler logHandler;
     private ArmorStandManager armorStandManager;
     private JailManager jailManager;
     private MySQL mySQL;
+
+
 
 
     public ModuleManager(String collection, ArangoDatabase database, JavaPlugin plugin, MySQL mySQL) {
@@ -43,6 +47,7 @@ public class ModuleManager {
         this.bankManager = new BankManager(database);
         this.armorStandManager = new ArmorStandManager(database);
         this.jailManager = new JailManager(database);
+        this.logHandler = new BankLogHandler(database);
         this.mySQL = mySQL;
     }
 
