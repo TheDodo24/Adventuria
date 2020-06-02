@@ -31,6 +31,11 @@ public class TimeFormat {
                 (!minute.equalsIgnoreCase("") ? minute + " und " : "") + (!second.equalsIgnoreCase("") ? second : "0 Sekunden");
     }
 
+    public static String getOutOfSeconds(int sec) {
+        int minutes = sec / 60;
+        return (minutes == 1 ? minutes + " Minute" : minutes + " Minuten");
+    }
+
     public static String getInDays(long time) {
         long hours = ((long) (((double) time / (1000 * 60 * 60)) * 100));
         String hour;
