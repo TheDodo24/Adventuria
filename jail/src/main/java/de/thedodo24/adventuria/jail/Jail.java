@@ -52,7 +52,6 @@ public class Jail extends Module {
         namespacedKey = new NamespacedKey(getPlugin(), "item-identifier");
 
         Bukkit.getOnlinePlayers().forEach(all -> {
-            System.out.println(all.getName());
             if(this.getManager().getPlayerManager().get(all.getUniqueId()).isJailed()) {
                 int blocks = this.getManager().getPlayerManager().get(all.getUniqueId()).getDestroyedJailBlocks();
                 double maxBlocks = this.getManager().getPlayerManager().get(all.getUniqueId()).getMaxJailBlocks();
