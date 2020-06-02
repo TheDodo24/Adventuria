@@ -1,24 +1,26 @@
 package de.thedodo24.commonPackage;
 
 import com.arangodb.ArangoDatabase;
+import com.earth2me.essentials.Essentials;
 import com.google.common.collect.Lists;
-import de.thedodo24.commonPackage.commands.CacheCommand;
-import de.thedodo24.commonPackage.commands.OntimeCommand;
-import de.thedodo24.commonPackage.commands.ScoreboardCommand;
-import de.thedodo24.commonPackage.commands.TrojanerCommand;
+import de.thedodo24.commonPackage.commands.*;
 import de.thedodo24.commonPackage.listener.PlayerListener;
 import de.thedodo24.commonPackage.module.ModuleSettings;
 import de.thedodo24.commonPackage.player.User;
-import de.thedodo24.commonPackage.utils.ScoreboardManager;
+import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import lombok.Getter;
 import de.thedodo24.commonPackage.module.Module;
 import de.thedodo24.commonPackage.module.ModuleManager;
+import lombok.val;
+import net.ess3.api.Economy;
+import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.permission.Permission;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.*;
 
@@ -32,6 +34,7 @@ public class Common extends Module {
     private final Map<UUID, Long> afkPlayer = new HashMap<>();
     private List<String> teamAccounts = Lists.newArrayList("team-sl", "team-ingenieur", "team-developer", "team-supporter", "team-polizist", "team-mva", "team-fbt", "team-helfer");
     private Permission perms = null;
+    private Chat chat = null;
 
 
 
@@ -106,6 +109,8 @@ public class Common extends Module {
 
             RegisteredServiceProvider<Permission> rsp = getPlugin().getServer().getServicesManager().getRegistration(Permission.class);
             perms = rsp.getProvider();
+            RegisteredServiceProvider<Chat> chatrsp = getPlugin().getServer().getServicesManager().getRegistration(Chat.class);
+            chat = chatrsp.getProvider();
         } catch (Exception e) {
             System.err.println("[Adventuria] Vault is depended to load this plugin");
         }
@@ -114,14 +119,22 @@ public class Common extends Module {
         new TrojanerCommand();
         new CacheCommand();
         new ScoreboardCommand();
+        new CountdownCommand();
         if(Bukkit.getOnlinePlayers().size() > 0) {
-            Bukkit.getOnlinePlayers().forEach(all -> {
-                new ScoreboardManager(all);
-                getPlayerOnline().put(all.getUniqueId(), System.currentTimeMillis());
-            });
+            Bukkit.getOnlinePlayers().forEach(ManagerScoreboard::new);
+            Bukkit.getOnlinePlayers().forEach(all -> getPlayerOnline().put(all.getUniqueId(), System.currentTimeMillis()));
         }
         setNextDay();
         setNextWeek();
+
+        Bukkit.getScheduler().scheduleAsyncRepeatingTask(this.getPlugin(), () ->
+                        ManagerScoreboard.getScoreboardMap().forEach((key, val) -> {
+                            Bukkit.getOnlinePlayers().forEach(all -> val.getBoard().setPrefix(all));
+                            val.getBoard().setPrefix(Bukkit.getPlayer(key));
+                            val.sendScoreboard(Bukkit.getPlayer(key));
+                })
+                , 5*20, 5*20);
+
     }
 
     private void setNextDay() {
@@ -160,5 +173,13 @@ public class Common extends Module {
             u.updateAfkTime(afkTime);
             Common.getInstance().getPlayerOnline().remove(all.getUniqueId());
         });
+    }
+
+    public List<String> removeAutoComplete(List<String> list, String s) {
+        if (!s.equalsIgnoreCase("")) {
+            List<String> newList = new ArrayList<>(list);
+            newList.stream().filter(a -> !a.startsWith(s)).forEach(list::remove);
+        }
+        return list;
     }
 }

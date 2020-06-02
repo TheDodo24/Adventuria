@@ -48,7 +48,7 @@ public class PlayerManager extends CollectionManager<User, UUID> {
                 long currentTime = System.currentTimeMillis();
                 long ontime = currentTime - Common.getInstance().getPlayerOnline().get(user.getKey());
                 if(Common.getInstance().getAfkPlayer().containsKey(user.getKey())) {
-                    ontime -= Common.getInstance().getAfkPlayer().get(user.getKey());
+                    ontime -= (currentTime - Common.getInstance().getAfkPlayer().get(user.getKey()));
                 }
                 totalOntime.put(user.getKey(), ontime + user.getTotalOntime());
             } else {
@@ -73,7 +73,7 @@ public class PlayerManager extends CollectionManager<User, UUID> {
                 long comp2 = val;
                 if (comp1 == comp2) {
                     keyIt.remove();
-                    if (sortedMap.size() <= 10) {
+                    if (sortedMap.size() < 10) {
                         sortedMap.put(get(key), val);
                     } else {
                         break;
