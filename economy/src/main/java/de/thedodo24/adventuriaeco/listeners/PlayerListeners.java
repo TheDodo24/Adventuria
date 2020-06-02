@@ -667,6 +667,7 @@ public class PlayerListeners implements Listener {
                                 account.setBalance(0);
                                 return account;
                             });
+                            Economy.getInstance().getManager().getLogHandler().save(Economy.getInstance().getManager().getLogHandler().getOrGenerate(msg.toLowerCase()));
                             Economy.getInstance().getManager().getBankManager().save(bankAccount);
                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                         } else {

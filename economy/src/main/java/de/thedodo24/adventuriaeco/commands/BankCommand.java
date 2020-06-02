@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import de.thedodo24.adventuriaeco.Economy;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.economy.BankAccount;
+import de.thedodo24.commonPackage.economy.BankLog;
+import de.thedodo24.commonPackage.economy.BankLogType;
 import de.thedodo24.commonPackage.economy.BankType;
 import de.thedodo24.commonPackage.player.CustomScoreboardType;
 import de.thedodo24.commonPackage.player.User;
@@ -14,13 +16,13 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BankCommand implements CommandExecutor, TabCompleter {
@@ -394,7 +396,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                             BankAccount bankAccount = Economy.getInstance().getManager().getBankManager().get(name);
                             if(bankAccount != null) {
                                 if(!name.equalsIgnoreCase("staatskasse")) {
-                                    Economy.getInstance().getManager().getPlayerManager().getUsers().stream().filter(User::isCustomScoreboard).filter(user -> user.checkCustomScoreboard(CustomScoreboardType.BANK))
+                                    /*Economy.getInstance().getManager().getPlayerManager().getUsers().stream().filter(User::isCustomScoreboard).filter(user -> user.checkCustomScoreboard(CustomScoreboardType.BANK))
                                             .filter(user -> user.getCustomScoreboard(CustomScoreboardType.BANK).equalsIgnoreCase(name)).forEach(user -> {
                                         user.unSetCustomScoreboard(CustomScoreboardType.BANK);
                                         Player to;
@@ -402,7 +404,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                             to.sendMessage(prefix + "§7Dein §aCustom-Scoreboard §7für ein Bankkonto wurde gelöscht, da das Bankkonto gelöscht wurde.");
                                         }
                                         Economy.getInstance().getManager().getPlayerManager().save(user);
-                                    });
+                                    });*/
                                     Economy.getInstance().getManager().getBankManager().delete(name);
                                     s.sendMessage(prefix + "§7Das Bankkonto §2" + name + " §7wurde gelöscht.");
                                 } else {
@@ -440,6 +442,9 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                         staatskasse.withdrawMoney(value);
                                         Common.getInstance().getManager().getBankManager().save(staatskasse);
                                         Common.getInstance().getManager().getBankManager().save(bankAccount);
+                                        BankLog log = Common.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount.getKey());
+                                        log.addHistory(System.currentTimeMillis(), BankLogType.ADMIN_GIVE, s.getName(), value);
+                                        Common.getInstance().getManager().getLogHandler().save(log);
                                         s.sendMessage(prefix + "§2" + formatValue(((Long) value).doubleValue() / 100) + "§7 wurden auf das Konto §2" + name + " §7überwiesen.");
                                     } else {
                                         s.sendMessage(prefix + "§2Argument 4 §7muss eine positive Zahl sein.");
@@ -473,6 +478,9 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                             staatskasse.depositMoney(value);
                                             Common.getInstance().getManager().getBankManager().save(staatskasse);
                                             Common.getInstance().getManager().getBankManager().save(bankAccount);
+                                            BankLog log = Common.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount.getKey());
+                                            log.addHistory(System.currentTimeMillis(), BankLogType.ADMIN_TAKE, s.getName(), value);
+                                            Common.getInstance().getManager().getLogHandler().save(log);
                                             s.sendMessage(prefix + "§2" + formatValue(((Long) value).doubleValue() / 100) + " §7wurden dem Konto §2" + name + " §7genommen.");
                                         } else {
                                             s.sendMessage(prefix + "§7Der Kontostand darf nicht unter 0 A gehen.");
@@ -513,7 +521,10 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                         }
                                         Common.getInstance().getManager().getBankManager().save(staatskasse);
                                         Common.getInstance().getManager().getBankManager().save(bankAccount);
-                                        s.sendMessage(prefix + "§7Der Kontostand vom Konto §2" + name + " §7wurde auf §2" + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
+                                        BankLog log = Common.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount.getKey());
+                                        log.addHistory(System.currentTimeMillis(), BankLogType.ADMIN_SET, s.getName(), value);
+                                        Common.getInstance().getManager().getLogHandler().save(log);
+                                    s.sendMessage(prefix + "§7Der Kontostand vom Konto §2" + name + " §7wurde auf §2" + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
                                     } else {
                                         s.sendMessage(prefix + "§2Argument 4 §7muss eine positive Zahl sein.");
                                     }
@@ -734,6 +745,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                                 account.setBalance(0);
                                                 return account;
                                             });
+                                            Economy.getInstance().getManager().getLogHandler().save(Economy.getInstance().getManager().getLogHandler().getOrGenerate(name.toLowerCase()));
                                             Economy.getInstance().getManager().getBankManager().save(bankAccount);
                                         } else {
                                             p.sendMessage(prefix + "§7Ein Bankkonto mit dem Namen §2" + name.toLowerCase() + " §7existiert bereits.");
@@ -791,7 +803,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                 if(bankAccount.getOwners().contains(p.getUniqueId())) {
                                     long moneyValue = bankAccount.getBalance();
                                     Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId()).depositMoney(moneyValue);
-                                    Economy.getInstance().getManager().getPlayerManager().getUsers().stream().filter(User::isCustomScoreboard).filter(user -> user.checkCustomScoreboard(CustomScoreboardType.BANK))
+                                    /*Economy.getInstance().getManager().getPlayerManager().getUsers().stream().filter(User::isCustomScoreboard).filter(user -> user.checkCustomScoreboard(CustomScoreboardType.BANK))
                                             .filter(user -> user.getCustomScoreboard(CustomScoreboardType.BANK).equalsIgnoreCase(name)).forEach(user -> {
                                             user.unSetCustomScoreboard(CustomScoreboardType.BANK);
                                             Player to;
@@ -799,11 +811,52 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                                 to.sendMessage(prefix + "§7Dein §aCustom-Scoreboard §7für ein Bankkonto wurde gelöscht, da das Bankkonto gelöscht wurde.");
                                             }
                                             Economy.getInstance().getManager().getPlayerManager().save(user);
-                                    });
+                                    });*/
                                     Economy.getInstance().getManager().getBankManager().delete(name);
                                     p.sendMessage(prefix + "§7Das Bankkonto §2" + name + " §7wurde gelöscht.");
                                 } else {
                                     p.sendMessage(prefix + "§7Du bist nicht berechtigt das Konto §2" + name + " §7zu löschen.");
+                                }
+                            } else {
+                                p.sendMessage(prefix + "§7Das Bankkonto §2" + name + " §7existiert nicht.");
+                            }
+                        } else if(args[0].equalsIgnoreCase("log")) {
+                            String name = args[1].toLowerCase();
+                            BankAccount bankAccount = Economy.getInstance().getManager().getBankManager().get(name);
+                            if(bankAccount != null) {
+                                if(bankAccount.getMembers().contains(p.getUniqueId())  || bankAccount.getOwners().contains(p.getUniqueId())) {
+                                    BankLog bankLog = Economy.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount.getKey());
+                                    Map<String, Map<String, Object>> log = bankLog.getHistory();
+                                    p.sendMessage("§7|-----| §2Transkationen §7|-----|");
+                                    SimpleDateFormat formatDay = new SimpleDateFormat("dd.MM.yy");
+                                    SimpleDateFormat formatHour = new SimpleDateFormat("HH:mm:ss");
+                                    List<String> keySet = new ArrayList<>(log.keySet());
+                                    Collections.sort(keySet);
+                                    Collections.reverse(keySet);
+                                    if(keySet.size() == 0) {
+                                        p.sendMessage("§7Keine bisherigen Transaktionen gefunden.");
+                                        return true;
+                                    }
+                                    keySet.stream().limit(5).forEach(l ->
+                                            p.sendMessage("§8» §2" + formatDay.format(new Date(Long.parseLong(l))) + " §8- §2" + formatHour.format(new Date(Long.parseLong(l))) + "§8: " +
+                                                    (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ? "§4Eingezahlt" :
+                                                            (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_SET) ? "§4Gesetzt" :
+                                                                    (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§4Ausgezahlt" :
+                                                                            (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ? "§aEingezahlt" :
+                                                                                    (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ? "§cAusgezahlt" :
+                                                                                            (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ? "§cÜberweisung" :
+                                                                                                    (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§aÜberweisung" : "")))))))
+                                                    + " §8|| " + (bankAccount.getOwners().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§c" + log.get(l).get("player") :
+                                                                    (bankAccount.getMembers().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§6" + log.get(l).get("player") : "§4" + log.get(l).get("player")))
+                                            + " §8|| " + (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ||
+                                                            BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ||
+                                                            BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§a+" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
+                                                    BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ||
+                                                            BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ||
+                                                            BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§c-" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
+                                                            "§7" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) )));
+                                } else {
+                                    p.sendMessage(prefix + "§7Du bist nicht §6Teil§7- oder §4Inhaber §7des Kontos.");
                                 }
                             } else {
                                 p.sendMessage(prefix + "§7Das Bankkonto §2" + name + " §7existiert nicht.");
@@ -881,83 +934,25 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                 p.sendMessage(prefix + "§7Der Spieler §2" + other + " §7existiert nicht.");
                             }
                         } else if(args[0].equalsIgnoreCase("dep") || args[0].equalsIgnoreCase("deposit")) {
-                            String name = args[1].toLowerCase();
-                            BankAccount account = Economy.getInstance().getManager().getBankManager().get(name);
-                            if(account != null) {
-                                String arg = args[2];
-                                if(arg.contains(","))
-                                    arg = arg.replace(",", ".");
-                                long value;
-                                User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                                try {
-                                    if(arg.equalsIgnoreCase("all"))
-                                        value = user.getBalance();
-                                    else
-                                        if(!arg.equalsIgnoreCase("Infinity") && !arg.equalsIgnoreCase("-Infinity"))
-                                            value = (long) (Double.parseDouble(arg) * 100);
-                                        else {
-                                            p.sendMessage(prefix + "§7Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
-                                            p.sendMessage(prefix + "§7Der Kontostand des Kontos §2" + account.getKey() + " §7wurde durch §2CONSOLE §7auf §20A §7gesetzt.");
-                                            return false;
-                                        }
-                                } catch(NumberFormatException ignored) {
-                                    p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
-                                    return false;
-                                }
-                                if(value > 0) {
-                                    long taxes = (long) (value * 0.0025);
-                                    if(taxes == 0) {
-                                        taxes = 1;
-                                    }
-                                    if((user.getBalance() - value) >= 0) {
-                                        account.depositMoney(value - taxes);
-                                        user.withdrawMoney(value);
-                                        Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
-                                        Economy.getInstance().getManager().getBankManager().save(account);
-                                        Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
-                                        Economy.getInstance().getManager().getPlayerManager().save(user);
-                                        p.sendMessage(prefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
-                                        account.getOwners().forEach(owner -> {
-                                            Player t;
-                                            if((t = Bukkit.getPlayer(owner)) != null) {
-                                                t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt");
-                                            }
-                                        });
-                                        account.getMembers().forEach(owner -> {
-                                            Player t;
-                                            if((t = Bukkit.getPlayer(owner)) != null) {
-                                                t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt");
-                                            }
-                                        });
-                                    } else {
-                                        p.sendMessage(prefix + "§7Du hast nicht genügend Geld.");
-                                    }
-                                } else {
-                                    p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
-                                }
-                            } else {
-                                p.sendMessage(prefix + "Ein Konto mit dem Namen §2" + name + " §7konnte nicht gefunden werden.");
-                            }
-                        } else if(args[0].equalsIgnoreCase("with") || args[0].equalsIgnoreCase("withdraw")) {
-                            String name = args[1].toLowerCase();
-                            BankAccount account = Economy.getInstance().getManager().getBankManager().get(name);
-                            if(account != null) {
-                                if(account.getMembers().contains(p.getUniqueId()) || account.getOwners().contains(p.getUniqueId())) {
+                                String name = args[1].toLowerCase();
+                                BankAccount account = Economy.getInstance().getManager().getBankManager().get(name);
+                                if(account != null) {
                                     String arg = args[2];
                                     if(arg.contains(","))
                                         arg = arg.replace(",", ".");
                                     long value;
+                                    User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
                                     try {
                                         if(arg.equalsIgnoreCase("all"))
-                                            value = account.getBalance();
-                                        else {
-                                            if(!arg.equalsIgnoreCase("Infinity") && !arg.equalsIgnoreCase("-Infinity"))
-                                                value = (long) (Double.parseDouble(arg) * 100);
-                                            else {
-                                                p.sendMessage(prefix + "§7Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
-                                                p.sendMessage(prefix + "§7Der Kontostand des Kontos §2" + account.getKey() + " §7wurde durch §2CONSOLE §7auf §20A §7gesetzt.");
-                                                return false;
-                                            }
+                                            value = user.getBalance();
+                                        else
+                                        if(!arg.equalsIgnoreCase("Infinity") && !arg.equalsIgnoreCase("-Infinity")) {
+                                            value = (long) (Double.parseDouble(arg) * 100);
+                                            Bukkit.broadcastMessage(String.valueOf(value));
+                                        } else {
+                                            p.sendMessage(prefix + "§7Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
+                                            p.sendMessage(prefix + "§7Der Kontostand des Kontos §2" + account.getKey() + " §7wurde durch §2CONSOLE §7auf §20A §7gesetzt.");
+                                            return false;
                                         }
                                     } catch(NumberFormatException ignored) {
                                         p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
@@ -965,48 +960,130 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                     }
                                     if(value > 0) {
                                         long taxes = (long) (value * 0.0025);
-                                        if(taxes == 0)
+                                        if(taxes == 0) {
                                             taxes = 1;
-                                        User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                                        if(((account.getBalance() - value) - taxes) < 0) {
-                                            if(!arg.equalsIgnoreCase("all")) {
-                                                p.sendMessage(prefix + "§7Du hast nicht genügend Geld auf deinem §2Konto§7. §8(Steuern: " + formatValue(((Long) taxes).doubleValue() / 100) + ")");
+                                        }
+                                        if((user.getBalance() - value) >= 0) {
+                                            if((user.getBalance() + value) < 0) {
+                                                p.sendMessage(prefix + "§7Dein Kontostand kann nicht ins §cMinus §7gehen.");
                                                 return false;
                                             }
-                                        }
-                                        if(arg.equalsIgnoreCase("all")) {
-                                            account.withdrawMoney(value);
-                                            user.depositMoney(value - taxes);
+                                            if((account.getBalance() + value) < 0) {
+                                                p.sendMessage(prefix + "§7Dein Kontostand kann nicht in §cMinus §7gehen.");
+                                                return false;
+                                            }
+                                            account.depositMoney(value - taxes);
+                                            user.withdrawMoney(value);
+                                            Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
+                                            Economy.getInstance().getManager().getBankManager().save(account);
+                                            Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
+                                            Economy.getInstance().getManager().getPlayerManager().save(user);
+                                            BankLog log = Economy.getInstance().getManager().getLogHandler().getOrGenerate(account.getKey());
+                                            log.addHistory(System.currentTimeMillis(), BankLogType.DEPOSIT, p.getName(), value);
+                                            Economy.getInstance().getManager().getLogHandler().save(log);
+                                            p.sendMessage(prefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
+                                            account.getOwners().forEach(owner -> {
+                                                Player t;
+                                                if((t = Bukkit.getPlayer(owner)) != null) {
+                                                    t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt");
+                                                }
+                                            });
+                                            account.getMembers().forEach(owner -> {
+                                                Player t;
+                                                if((t = Bukkit.getPlayer(owner)) != null) {
+                                                    t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt");
+                                                }
+                                            });
                                         } else {
-                                            account.withdrawMoney(value + taxes);
-                                            user.depositMoney(value);
+                                            p.sendMessage(prefix + "§7Du hast nicht genügend Geld.");
                                         }
-                                        Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
-                                        Economy.getInstance().getManager().getBankManager().save(account);
-                                        Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
-                                        Economy.getInstance().getManager().getPlayerManager().save(user);
-                                        p.sendMessage(prefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7ausgezahlt und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
-                                        account.getOwners().forEach(owner -> {
-                                            Player t;
-                                            if((t = Bukkit.getPlayer(owner)) != null) {
-                                                t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7ausgezahlt");
-                                            }
-                                        });
-                                        account.getMembers().forEach(owner -> {
-                                            Player t;
-                                            if((t = Bukkit.getPlayer(owner)) != null) {
-                                                t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7ausgezahlt");
-                                            }
-                                        });
                                     } else {
                                         p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
                                     }
                                 } else {
-                                    p.sendMessage(prefix + "§7Du hast keine Rechte auf dieses Konto.");
+                                    p.sendMessage(prefix + "Ein Konto mit dem Namen §2" + name + " §7konnte nicht gefunden werden.");
                                 }
-                            } else {
-                                p.sendMessage(prefix + "Ein Konto mit dem Namen §2" + name + " §7konnte nicht gefunden werden.");
-                            }
+                        } else if(args[0].equalsIgnoreCase("with") || args[0].equalsIgnoreCase("withdraw")) {
+                                String name = args[1].toLowerCase();
+                                BankAccount account = Economy.getInstance().getManager().getBankManager().get(name);
+                                if(account != null) {
+                                    if(account.getMembers().contains(p.getUniqueId()) || account.getOwners().contains(p.getUniqueId())) {
+                                        String arg = args[2];
+                                        if(arg.contains(","))
+                                            arg = arg.replace(",", ".");
+                                        long value;
+                                        try {
+                                            if(arg.equalsIgnoreCase("all"))
+                                                value = account.getBalance();
+                                            else {
+                                                if(!arg.equalsIgnoreCase("Infinity") && !arg.equalsIgnoreCase("-Infinity")) {
+                                                    value = (long) (Double.parseDouble(arg) * 100);
+                                                    Bukkit.broadcastMessage(String.valueOf(value));
+                                                } else {
+                                                    p.sendMessage(prefix + "§7Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
+                                                    p.sendMessage(prefix + "§7Der Kontostand des Kontos §2" + account.getKey() + " §7wurde durch §2CONSOLE §7auf §20A §7gesetzt.");
+                                                    return false;
+                                                }
+                                            }
+                                        } catch(NumberFormatException ignored) {
+                                            p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
+                                            return false;
+                                        }
+                                        if(value > 0) {
+                                            long taxes = (long) (value * 0.0025);
+                                            if(taxes == 0)
+                                                taxes = 1;
+                                            User user = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
+                                            if(((account.getBalance() - value) - taxes) < 0) {
+                                                if(!arg.equalsIgnoreCase("all")) {
+                                                    p.sendMessage(prefix + "§7Du hast nicht genügend Geld auf deinem §2Konto§7. §8(Steuern: " + formatValue(((Long) taxes).doubleValue() / 100) + ")");
+                                                    return false;
+                                                }
+                                            }
+                                            if((user.getBalance() + value) < 0) {
+                                                p.sendMessage(prefix + "§7Dein Kontostand kann nicht ins §cMinus §7gehen.");
+                                                return false;
+                                            }
+                                            if((account.getBalance() + value) < 0) {
+                                                p.sendMessage(prefix + "§7Dein Kontostand kann nicht in §cMinus §7gehen.");
+                                                return false;
+                                            }
+                                            if(arg.equalsIgnoreCase("all")) {
+                                                account.withdrawMoney(value);
+                                                user.depositMoney(value - taxes);
+                                            } else {
+                                                account.withdrawMoney(value + taxes);
+                                                user.depositMoney(value);
+                                            }
+                                            Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(taxes);
+                                            Economy.getInstance().getManager().getBankManager().save(account);
+                                            Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
+                                            Economy.getInstance().getManager().getPlayerManager().save(user);
+                                            BankLog log = Economy.getInstance().getManager().getLogHandler().getOrGenerate(account.getKey());
+                                            log.addHistory(System.currentTimeMillis(), BankLogType.WITHDRAW, p.getName(), value);
+                                            Economy.getInstance().getManager().getLogHandler().save(log);
+                                            p.sendMessage(prefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7ausgezahlt und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
+                                            account.getOwners().forEach(owner -> {
+                                                Player t;
+                                                if((t = Bukkit.getPlayer(owner)) != null) {
+                                                    t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7ausgezahlt");
+                                                }
+                                            });
+                                            account.getMembers().forEach(owner -> {
+                                                Player t;
+                                                if((t = Bukkit.getPlayer(owner)) != null) {
+                                                    t.sendMessage(prefix + "§2" + p.getName() + " §7hat §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7ausgezahlt");
+                                                }
+                                            });
+                                        } else {
+                                            p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
+                                        }
+                                    } else {
+                                        p.sendMessage(prefix + "§7Du hast keine Rechte auf dieses Konto.");
+                                    }
+                                } else {
+                                    p.sendMessage(prefix + "Ein Konto mit dem Namen §2" + name + " §7konnte nicht gefunden werden.");
+                                }
                         } else if(args[0].equalsIgnoreCase("removeowner") || args[0].equalsIgnoreCase("remo")) {
                             String name = args[1].toLowerCase();
                             BankAccount account = Economy.getInstance().getManager().getBankManager().get(name);
@@ -1061,6 +1138,58 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                             } else {
                                 p.sendMessage(prefix + "Ein Konto mit dem Namen §2" + name + " §7konnte nicht gefunden werden.");
                             }
+                        } else if(args[0].equalsIgnoreCase("log")) {
+                            String name = args[1].toLowerCase();
+                            BankAccount bankAccount = Economy.getInstance().getManager().getBankManager().get(name);
+                            if(bankAccount != null) {
+                                if(bankAccount.getMembers().contains(p.getUniqueId())  || bankAccount.getOwners().contains(p.getUniqueId())) {
+                                    int site;
+                                    try {
+                                        site = Integer.parseInt(args[2]);
+                                    } catch(NumberFormatException e) {
+                                        p.sendMessage(prefix + "§2Argument 3 §7muss eine postivite Ganzzahl sein.");
+                                        return false;
+                                    }
+                                    if(site > 0) {
+                                        BankLog bankLog = Economy.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount.getKey());
+                                        Map<String, Map<String, Object>> log = bankLog.getHistory();
+                                        p.sendMessage("§7|-----| §2Transkationen §7|-----|");
+                                        SimpleDateFormat formatDay = new SimpleDateFormat("dd.MM.yy");
+                                        SimpleDateFormat formatHour = new SimpleDateFormat("HH:mm:ss");
+                                        List<String> keySet = new ArrayList<>(log.keySet());
+                                        Collections.sort(keySet);
+                                        Collections.reverse(keySet);
+                                        if(keySet.size() == 0) {
+                                            p.sendMessage("§7Keine bisherigen Transaktionen gefunden.");
+                                            return true;
+                                        }
+                                        keySet.stream().skip(5*(site - 1)).limit(5 * site + 5 * (site - 1)).forEach(l ->
+                                                p.sendMessage("§8» §2" + formatDay.format(new Date(Long.parseLong(l))) + " §8- §2" + formatHour.format(new Date(Long.parseLong(l))) + "§8: " +
+                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ? "§4Eingezahlt" :
+                                                                (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_SET) ? "§4Gesetzt" :
+                                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§4Ausgezahlt" :
+                                                                                (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ? "§aEingezahlt" :
+                                                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ? "§cAusgezahlt" :
+                                                                                                (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ? "§cÜberweisung" :
+                                                                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§aÜberweisung" : "")))))))
+                                                        + " §8|| " + (bankAccount.getOwners().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§c" + log.get(l).get("player") :
+                                                        (bankAccount.getMembers().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§6" + log.get(l).get("player") : "§4" + log.get(l).get("player")))
+                                                        + " §8|| " + (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ||
+                                                        BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ||
+                                                        BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§a+" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
+                                                        BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ||
+                                                                BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ||
+                                                                BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§c-" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
+                                                                "§7" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) )));
+                                    } else {
+                                        p.sendMessage(prefix + "§2Argument 3 §7muss eine positive Ganzzahl sein.");
+                                    }
+                                } else {
+                                    p.sendMessage(prefix + "§7Du bist nicht §6Teil§7- oder §4Inhaber §7des Kontos.");
+                                }
+                            } else {
+                                p.sendMessage(prefix + "§7Das Bankkonto §2" + name + " §7existiert nicht.");
+                            }
                         } else {
                             sendHelpMessage(p);
                         }
@@ -1113,6 +1242,12 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                                 Economy.getInstance().getManager().getBankManager().save(ownAccount);
                                                 Economy.getInstance().getManager().getBankManager().save(toAccount);
                                                 Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
+                                                BankLog ownLog = Economy.getInstance().getManager().getLogHandler().getOrGenerate(ownAccount.getKey());
+                                                ownLog.addHistory(System.currentTimeMillis(), BankLogType.TRANSFER_FROM, p.getName(), value);
+                                                Economy.getInstance().getManager().getLogHandler().save(ownLog);
+                                                BankLog toLog = Economy.getInstance().getManager().getLogHandler().getOrGenerate(toAccount.getKey());
+                                                toLog.addHistory(System.currentTimeMillis(), BankLogType.TRANSFER_TO, p.getName(), value);
+                                                Economy.getInstance().getManager().getLogHandler().save(toLog);
                                                 p.sendMessage(prefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + to + " §7überwiesen und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
                                                 ownAccount.getOwners().forEach(owner -> {
                                                     Player t;
@@ -1175,18 +1310,18 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                 if(p.hasPermission("bank.admin")) {
                     list.add("admin");
                 }
-                return list;
+                return Common.getInstance().removeAutoComplete(list, args[0]);
             } else if(args.length == 2) {
                 switch (args[0].toLowerCase()) {
                     case "list":
-                        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
                     case "balance":
                     case "dep":
                     case "with":
                     case "deposit":
                     case "withdraw":
                     case "transfer":
-                        return Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).stream().map(BankAccount::getKey).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).stream().map(BankAccount::getKey).collect(Collectors.toList()), args[1]);
                     case "delete":
                     case "addmember":
                     case "addm":
@@ -1196,10 +1331,10 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                     case "remm":
                     case "removeowner":
                     case "remo":
-                        return Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).stream().filter(acc -> acc.getOwners().contains(p.getUniqueId())).map(BankAccount::getKey).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).stream().filter(acc -> acc.getOwners().contains(p.getUniqueId())).map(BankAccount::getKey).collect(Collectors.toList()), args[1]);
                     case "admin":
                         if(p.hasPermission("bank.admin"))
-                            return Lists.newArrayList("delete", "give", "take", "set", "addmember", "addowner", "removemember", "removeowner", "addas", "delas", "cancel");
+                            return Common.getInstance().removeAutoComplete(Lists.newArrayList("delete", "give", "take", "set", "addmember", "addowner", "removemember", "removeowner", "addas", "delas", "cancel"), args[1]);
                 }
             } else if(args.length == 3) {
                 switch(args[0].toLowerCase()) {
@@ -1207,23 +1342,35 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                     case "addowner":
                     case "addm":
                     case "addo":
-                        return Bukkit.getOnlinePlayers().stream().filter(all -> !Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getOwners().contains(all.getUniqueId()) && !Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getMembers().contains(all.getUniqueId()))
-                                .map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(
+                                Bukkit.getOnlinePlayers().stream().filter(all -> !Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getOwners().contains(all.getUniqueId()) && !Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getMembers().contains(all.getUniqueId()))
+                                        .map(Player::getName).collect(Collectors.toList()),
+                                args[2]
+                        );
                     case "removemember":
                     case "remm":
-                        return Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getMembers().contains(all.getUniqueId()))
-                                .map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(
+                                Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getMembers().contains(all.getUniqueId()))
+                                        .map(Player::getName).collect(Collectors.toList()),
+                                args[2]
+                        );
                     case "removeowner":
                     case "remo":
-                        return Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getOwners().contains(all.getUniqueId()))
-                                .map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(
+                                Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[1].toLowerCase()).getOwners().contains(all.getUniqueId()))
+                                        .map(Player::getName).collect(Collectors.toList()),
+                                args[2]
+                        );
                     case "transfer":
-                        return Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).stream().map(BankAccount::getKey).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(
+                                Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).stream().map(BankAccount::getKey).collect(Collectors.toList()),
+                                args[2]
+                        );
                     case "dep":
                     case "with":
                     case "deposit":
                     case "withdraw":
-                        return Lists.newArrayList("all", "1000.0", "2500.0", "5000.0", "10000.0", "25000.0", "50000.0", "100000.0");
+                        return Common.getInstance().removeAutoComplete(Lists.newArrayList("all", "1000.0", "2500.0", "5000.0", "10000.0", "25000.0", "50000.0", "100000.0"), args[2]);
                 }
                 if(p.hasPermission("bank.admin")) {
                     switch(args[1].toLowerCase()) {
@@ -1239,7 +1386,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                         case "addo":
                         case "removeowner":
                         case "remo":
-                            return Economy.getInstance().getManager().getBankManager().getByType(BankType.BANK).stream().map(BankAccount::getKey).collect(Collectors.toList());
+                            return Common.getInstance().removeAutoComplete(Economy.getInstance().getManager().getBankManager().getByType(BankType.BANK).stream().map(BankAccount::getKey).collect(Collectors.toList()), args[2]);
                     }
                 }
             } else if(args.length == 4) {
@@ -1249,16 +1396,16 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                         case "addowner":
                         case "addm":
                         case "addo":
-                            return Bukkit.getOnlinePlayers().stream().filter(all -> !Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getOwners().contains(all.getUniqueId()) && !Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getMembers().contains(all.getUniqueId()))
-                                    .map(Player::getName).collect(Collectors.toList());
+                            return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().filter(all -> !Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getOwners().contains(all.getUniqueId()) && !Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getMembers().contains(all.getUniqueId()))
+                                    .map(Player::getName).collect(Collectors.toList()), args[3]);
                         case "removemember":
                         case "remm":
-                            return Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getMembers().contains(all.getUniqueId()))
-                                    .map(Player::getName).collect(Collectors.toList());
+                            return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getMembers().contains(all.getUniqueId()))
+                                    .map(Player::getName).collect(Collectors.toList()), args[3]);
                         case "removeowner":
                         case "remo":
-                            return Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getOwners().contains(all.getUniqueId()))
-                                    .map(Player::getName).collect(Collectors.toList());
+                            return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().filter(all -> Economy.getInstance().getManager().getBankManager().get(args[2].toLowerCase()).getOwners().contains(all.getUniqueId()))
+                                    .map(Player::getName).collect(Collectors.toList()), args[3]);
                     }
                 }
             }
