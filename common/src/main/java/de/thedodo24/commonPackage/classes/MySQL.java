@@ -104,7 +104,7 @@ public class MySQL {
         } catch (SQLException e) {
             sendErrorMessage(e);
         }
-        return null;
+        return new HashMap<>();
     }
 
     public boolean checkCorp(String name) {
