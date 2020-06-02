@@ -3,9 +3,9 @@ package de.thedodo24.commonPackage.listener;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.CollectionManager;
+import de.thedodo24.commonPackage.player.CustomScoreboardType;
 import de.thedodo24.commonPackage.player.User;
 import de.thedodo24.commonPackage.utils.ManagerScoreboard;
-import de.thedodo24.commonPackage.utils.ScoreboardManager;
 import de.thedodo24.commonPackage.utils.SkullItems;
 import de.thedodo24.commonPackage.utils.TimeFormat;
 import net.ess3.api.Economy;
@@ -19,12 +19,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,8 +41,33 @@ public class PlayerListener implements Listener {
         u.setName(p.getName());
         Common.getInstance().getPlayerOnline().put(p.getUniqueId(), System.currentTimeMillis());
         Common.getInstance().checkTime();
-        new ScoreboardManager(p);
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        if(!u.isSetProperty("scoreboard")) {
+            u.getValues().put("scoreboard", new HashMap<String, HashMap<String, String>>() {{
+                put("0", new HashMap<String, String>() {{
+                    put("type", CustomScoreboardType.MONEY.toString());
+                    put("value", "");
+                }});
+                put("1", new HashMap<String, String>() {{
+                    put("type", CustomScoreboardType.ONLINE.toString());
+                    put("value", "");
+                }});
+            }});
+        } else {
+            if(!((Map<String, Map<String, String>>) u.getProperty("scoreboard")).containsKey("0")) {
+                u.getValues().replace("scoreboard", new HashMap<String, HashMap<String, String>>() {{
+                    put("0", new HashMap<String, String>() {{
+                        put("type", CustomScoreboardType.MONEY.toString());
+                        put("value", "");
+                    }});
+                    put("1", new HashMap<String, String>() {{
+                        put("type", CustomScoreboardType.ONLINE.toString());
+                        put("value", "");
+                    }});
+                }});
+            }
+        }
+        new ManagerScoreboard(p);
+        ManagerScoreboard.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
         //new ManagerScoreboard(p);
         //ManagerScoreboard.getScoreboardMap().forEach((key, val) -> p.setScoreboard(val.getBoard().getScoreboard()));
     }
@@ -131,8 +158,8 @@ public class PlayerListener implements Listener {
         u.updateAfkTime(afkTime);
         Common.getInstance().getPlayerOnline().remove(p.getUniqueId());
         Common.getInstance().getManager().getPlayerManager().update(u);
-        ScoreboardManager.getScoreboardMap().remove(p.getUniqueId());
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size() - 1));
+        ManagerScoreboard.getScoreboardMap().remove(p.getUniqueId());
+        ManagerScoreboard.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
     }
 
 }
