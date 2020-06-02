@@ -3,13 +3,17 @@ package de.thedodo24.commonPackage.economy;
 import com.arangodb.entity.BaseDocument;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.arango.ArangoWritable;
-import de.thedodo24.commonPackage.utils.ScoreboardManager;
+import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.scoreboard.ScoreboardManager;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Getter
@@ -52,22 +56,22 @@ public class BankAccount implements ArangoWritable<String> {
 
     public double withdrawMoney(double v) {
         balance -= ((long) (v * 100));
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        Executors.newSingleThreadExecutor().execute(() -> ManagerScoreboard.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key))));
         return ((Long) balance).doubleValue() / 100;
     }
 
     public double depositMoney(double v) {
         balance += ((long) v * 100);
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        Executors.newSingleThreadExecutor().execute(() -> ManagerScoreboard.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key))));
         return ((Long) balance).doubleValue() / 100;
     }
 
     public long depositMoney(long v) {
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        Executors.newSingleThreadExecutor().execute(() -> ManagerScoreboard.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key))));
         return balance += v;
     }
     public long withdrawMoney(long v) {
-        ScoreboardManager.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key), Bukkit.getOnlinePlayers().size()));
+        Executors.newSingleThreadExecutor().execute(() -> ManagerScoreboard.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key))));
         return balance -= v;
     }
 }
