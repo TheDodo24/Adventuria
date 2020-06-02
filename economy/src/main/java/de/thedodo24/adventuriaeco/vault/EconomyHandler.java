@@ -7,6 +7,7 @@ import de.thedodo24.commonPackage.economy.BankType;
 import de.thedodo24.commonPackage.player.User;
 import net.milkbowl.vault.economy.AbstractEconomy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.Bukkit;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -117,7 +118,9 @@ public class EconomyHandler extends AbstractEconomy {
             if(bankAccount == null) {
                 return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Could not found a account for the player " + s);
             }
-            return new EconomyResponse(-v, bankAccount.withdrawMoney(v), EconomyResponse.ResponseType.SUCCESS, "");
+            double va = bankAccount.withdrawMoney(v);
+            Economy.getInstance().getManager().getBankManager().save(bankAccount);
+            return new EconomyResponse(-v, va, EconomyResponse.ResponseType.SUCCESS, "");
         }
         return new EconomyResponse(-v, ((Long) m.withdrawMoney((long) (v * 100))).doubleValue() / 100, EconomyResponse.ResponseType.SUCCESS, "");
     }
@@ -138,7 +141,9 @@ public class EconomyHandler extends AbstractEconomy {
             if(bankAccount == null) {
                 return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Could not found a account for the player " + s);
             }
-            return new EconomyResponse(v, bankAccount.depositMoney(v), EconomyResponse.ResponseType.SUCCESS, "");
+            double va = bankAccount.depositMoney(v);
+            Economy.getInstance().getManager().getBankManager().save(bankAccount);
+            return new EconomyResponse(v, va, EconomyResponse.ResponseType.SUCCESS, "");
         }
         return new EconomyResponse(v, ((Long) m.depositMoney((long) (v * 100))).doubleValue() / 100, EconomyResponse.ResponseType.SUCCESS, "");
     }
@@ -204,6 +209,7 @@ public class EconomyHandler extends AbstractEconomy {
         }
         long value = (long) (v * 100);
         long newAmount = bankAccount.withdrawMoney(value);
+        Economy.getInstance().getManager().getBankManager().save(bankAccount);
         return new EconomyResponse(v, ((Long) newAmount).doubleValue() / 100, EconomyResponse.ResponseType.SUCCESS, "");
     }
 
@@ -218,6 +224,7 @@ public class EconomyHandler extends AbstractEconomy {
         }
         long value = (long) (v * 100);
         long newAmount = bankAccount.depositMoney(value);
+        Economy.getInstance().getManager().getBankManager().save(bankAccount);
         return new EconomyResponse(v, ((Long) newAmount).doubleValue() / 100, EconomyResponse.ResponseType.SUCCESS, "");
     }
 
@@ -260,7 +267,7 @@ public class EconomyHandler extends AbstractEconomy {
         if(hasAccount(s)) {
             return false;
         }
-        Economy.getInstance().getManager().getBankManager().register(s.toLowerCase());
+        Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().register(s.toLowerCase()));
         return true;
     }
 }

@@ -82,6 +82,8 @@ public class Economy extends Module {
 
     @Override
     public void onDisable() {
+        Economy.getInstance().getManager().getBankManager().bankAccounts().stream().filter(bankAccount -> bankAccount.getBankType().equals(BankType.EXTERNAL))
+                .forEach(bankAccount -> Economy.getInstance().getManager().getBankManager().save(bankAccount));
         System.out.println("[Adventuria] Module economy disabled.");
     }
 
