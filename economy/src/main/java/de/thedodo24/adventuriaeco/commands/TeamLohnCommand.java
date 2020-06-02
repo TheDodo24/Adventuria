@@ -150,6 +150,14 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                                     }
                                     if(value > 0) {
                                         if((teamAccount.getBalance() - value) >= 0) {
+                                            if((user.getBalance() + value) < 0) {
+                                                p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
+                                                return false;
+                                            }
+                                            if((teamAccount.getBalance()) < 0) {
+                                                p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
+                                                return false;
+                                            }
                                             user.depositMoney(value);
                                             teamAccount.withdrawMoney(value);
                                             Economy.getInstance().getManager().getBankManager().save(teamAccount);
@@ -235,7 +243,7 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                     returnAble.add("take");
                     returnAble.add("sethead");
                 }
-                return returnAble;
+                return Common.getInstance().removeAutoComplete(returnAble, args[0]);
             } else if(args.length == 2) {
                 switch(args[0].toLowerCase()) {
                     case "balance":
@@ -244,9 +252,9 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                     case "set":
                     case "take":
                     case "sethead":
-                        return Common.getInstance().getTeamAccounts().stream().map(a -> a.split("-")[1]).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Common.getInstance().getTeamAccounts().stream().map(a -> a.split("-")[1]).collect(Collectors.toList()), args[1]);
                     case "pay":
-                        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
                 }
             } else if(args.length == 3) {
                 switch (args[0].toLowerCase()) {
@@ -254,9 +262,9 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                     case "set":
                     case "take":
                     case "pay":
-                        return Lists.newArrayList("0.0", "1000.0", "10000.0", "15000.0", "25000.0", "30000.0");
+                        return Common.getInstance().removeAutoComplete(Lists.newArrayList("7500", "15000", "20000", "40000", "45000"), args[2]);
                     case "sethead":
-                        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[2]);
                 }
             }
         }

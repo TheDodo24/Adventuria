@@ -1,7 +1,9 @@
 package de.thedodo24.adventuriaeco.commands;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
 import de.thedodo24.adventuriaeco.Economy;
+import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.player.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -137,50 +139,54 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             if(args[0].equalsIgnoreCase("pay")) {
                 if(s instanceof Player) {
                     Player p = (Player) s;
-                            User pMoney = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                            String arg = args[2];
-                            if(arg.contains(","))
-                                arg = arg.replace(",", ".");
-                            long value;
-                            try {
-                                value = (long) (Double.parseDouble(arg) * 100);
-                            } catch(NumberFormatException e) {
-                                s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
-                                return false;
-                            }
-                            if(value > 0) {
-                                if((pMoney.getBalance() - value) >= 0) {
-                                    String name = "";
-                                    if(args[1].equalsIgnoreCase("staatskasse")) {
-                                        Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(value);
-                                        name = "Staatskasse";
-                                    } else {
-                                        User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
-                                        if(oMoney != null) {
-                                            if(!oMoney.getKey().equals(p.getUniqueId())) {
-                                                oMoney.depositMoney(value);
-                                                name = oMoney.getName();
-                                                Player other;
-                                                if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
-                                                    other.sendMessage(prefix + "§a" + p.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
-                                                }
-                                            } else {
-                                                p.sendMessage(prefix + "§7Du kannst dir nicht selbst Geld überweisen.");
-                                                return false;
+                    if(!p.getLocation().getWorld().equals(Bukkit.getWorld("Gewerbegebiet"))) {
+                        User pMoney = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
+                        String arg = args[2];
+                        if(arg.contains(","))
+                            arg = arg.replace(",", ".");
+                        long value;
+                        try {
+                            value = (long) (Double.parseDouble(arg) * 100);
+                        } catch(NumberFormatException e) {
+                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
+                            return false;
+                        }
+                        if(value > 0) {
+                            if((pMoney.getBalance() - value) >= 0) {
+                                String name = "";
+                                if(args[1].equalsIgnoreCase("staatskasse")) {
+                                    Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(value);
+                                    name = "Staatskasse";
+                                } else {
+                                    User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
+                                    if(oMoney != null) {
+                                        if(!oMoney.getKey().equals(p.getUniqueId())) {
+                                            oMoney.depositMoney(value);
+                                            name = oMoney.getName();
+                                            Player other;
+                                            if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
+                                                other.sendMessage(prefix + "§a" + p.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
                                             }
                                         } else {
-                                            p.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
+                                            p.sendMessage(prefix + "§7Du kannst dir nicht selbst Geld überweisen.");
                                             return false;
                                         }
+                                    } else {
+                                        p.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
+                                        return false;
                                     }
-                                    pMoney.withdrawMoney(value);
-                                    p.sendMessage(prefix + "§7Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
-                                } else {
-                                    p.sendMessage(prefix + "§7Du hast nicht genügend Geld.");
                                 }
+                                pMoney.withdrawMoney(value);
+                                p.sendMessage(prefix + "§7Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
                             } else {
-                                p.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                                p.sendMessage(prefix + "§7Du hast nicht genügend Geld.");
                             }
+                        } else {
+                            p.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                        }
+                    } else {
+                        p.sendMessage(prefix + "§7Du darst diesen Befehl nicht im §aGewerbegebiet §7ausführen.");
+                    }
                 } else {
                     s.sendMessage("[Adventuria] Du musst ein Spieler sein.");
                 }
@@ -298,6 +304,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                                 } else {
                                     s.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
                                 }
+
                             }
                             s.sendMessage(prefix + "Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7genommen.");
                             String finalName = name;
@@ -331,18 +338,18 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                     r.add("take");
                     r.add("set");
                 }
-                return r;
+                return Common.getInstance().removeAutoComplete(r, args[0]);
             } else if(args.length == 2) {
                 switch(args[0].toLowerCase()) {
                     case "pay":
                     case "balance":
                     case "bal":
-                        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
                     case "give":
                     case "take":
                     case "set":
                         if(p.hasPermission("money.admin")) {
-                            return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                            return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
                         }
                 }
             }

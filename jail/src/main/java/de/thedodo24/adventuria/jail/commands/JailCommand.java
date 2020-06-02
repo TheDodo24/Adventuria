@@ -2,6 +2,7 @@ package de.thedodo24.adventuria.jail.commands;
 
 import com.google.common.collect.Lists;
 import de.thedodo24.adventuria.jail.Jail;
+import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.jail.JailLocation;
 import de.thedodo24.commonPackage.player.User;
 import org.bukkit.Bukkit;
@@ -181,10 +182,10 @@ public class JailCommand implements CommandExecutor, TabCompleter {
             Player p = (Player) s;
             if(p.hasPermission("jail.set") || p.hasPermission("jail.jail") || p.hasPermission("jail.info") || p.hasPermission("jail.free")) {
                 if(args.length == 1) {
-                    return Lists.newArrayList("setteleport", "set", "info", "free");
+                    return Common.getInstance().removeAutoComplete(Lists.newArrayList("setteleport", "set", "info", "free"), args[0]);
                 } else if(args.length == 2) {
                     if(args[0].equalsIgnoreCase("info") || args[0].equalsIgnoreCase("free"))
-                        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                        return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
                 }
             }
         }
