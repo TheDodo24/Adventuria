@@ -1,4 +1,4 @@
-package de.thedodo24.commonPackage.commands;
+package de.thedodo24.adventuria.utilspackage.commands;
 
 import de.thedodo24.commonPackage.Common;
 import org.bukkit.Bukkit;

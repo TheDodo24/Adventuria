@@ -1,5 +1,6 @@
-package de.thedodo24.commonPackage.commands;
+package de.thedodo24.adventuria.utilspackage.commands;
 
+import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.utils.TimeFormat;
 import org.bukkit.Bukkit;
@@ -45,7 +46,8 @@ public class CountdownCommand implements CommandExecutor, TabCompleter {
                 if(args.length == 1) {
                     if(args[0].equalsIgnoreCase("options")) {
                         s.sendMessage(prefix + "§a-t §7|| §aZeitangabe in Sekunden §7(Standard: 60 Sekunden)\n" +
-                                prefix + "§a-c §7|| §aCommand ausführen am Ende des Countdowns §7(Standard: keiner)");
+                                prefix + "§a-c §7|| §aCommand ausführen am Ende des Countdowns §7(Standard: keiner)\n" +
+                                prefix + "§a-cmsg §7|| §aEine Custom-Message beim Ende des Countdowns anzeigen §7(Standard: \"§4Los!§7\")");
                         return true;
                     }
                 }
@@ -58,6 +60,7 @@ public class CountdownCommand implements CommandExecutor, TabCompleter {
                 Collections.reverse(reversedList);
                 AtomicBoolean command = new AtomicBoolean(false);
                 AtomicReference<String> commandString = new AtomicReference<>("");
+                AtomicReference<String> customMessage = new AtomicReference<>("§4Los!");
                 int time = 60;
                 AtomicBoolean stop = new AtomicBoolean(false);
                 for (String string : argList) {
@@ -83,18 +86,16 @@ public class CountdownCommand implements CommandExecutor, TabCompleter {
                             break;
                         }
                         if (i > 0) {
-                            if (i <= 300) {
-                                time = i;
-                            } else {
-                                s.sendMessage(prefix + "Das Zeitmaximum von §a5 Minuten §7wurde überschritten.");
-                                stop.set(true);
-                                break;
-                            }
+                            time = i;
                         } else {
                             s.sendMessage(prefix + "Die Zeit muss ganzzahlig und positiv sein.");
                             stop.set(true);
                             break;
                         }
+                    } else if(string.toLowerCase().equalsIgnoreCase("-cmsg")) {
+                        int index = argList.indexOf(string);
+                        String next = argList.get(index + 1);
+                        customMessage.set(ChatColor.translateAlternateColorCodes('&', next.replace("_", " ")));
                     }
                 }
                 if(!stop.get()) {
@@ -109,7 +110,7 @@ public class CountdownCommand implements CommandExecutor, TabCompleter {
                     s.sendMessage(prefix + "§7Der Countdown wurde gestartet.");
                     String msg;
                     if(reversedList.stream().anyMatch(arg -> arg.startsWith("-")))
-                        msg = argList.stream().skip(argList.indexOf(argList.stream().filter(arg -> arg.startsWith("-")).findFirst().get() + 2)).collect(Collectors.joining(" "));
+                        msg = argList.stream().skip(argList.indexOf(reversedList.stream().filter(arg -> arg.startsWith("-")).findFirst().get()) + 2).collect(Collectors.joining(" "));
                     else
                         msg = String.join(" ", argList);
                     msg = ChatColor.translateAlternateColorCodes('&', msg);
@@ -133,7 +134,7 @@ public class CountdownCommand implements CommandExecutor, TabCompleter {
                                 if(finalTime.get() > 0) {
                                     Bukkit.broadcastMessage(prefix + "Noch §4" + (finalTime.get() == 1 ? finalTime.get() + " Sekunde" : finalTime.get() + " Sekunden") + "§7...");
                                 } else if(finalTime.get() == 0) {
-                                    Bukkit.broadcastMessage(prefix + "§4Los!");
+                                    Bukkit.broadcastMessage(prefix + customMessage.get());
                                     if(command.get()) {
                                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandString.get());
                                     }
@@ -156,6 +157,27 @@ public class CountdownCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender s, Command cmd, String label, String[] args) {
-        return null;
+        if(args.length == 1) {
+            return Common.getInstance().removeAutoComplete(Lists.newArrayList("-t", "-c", "-cmsg"), args[0]);
+        } else if(args.length == 2) {
+            switch(args[0].toLowerCase()) {
+                case "-t":
+                    return Common.getInstance().removeAutoComplete(Lists.newArrayList("30", "60", "120", "180", "240", "300"), args[1]);
+                case "-c":
+                case "-cmsg":
+                    return Lists.newArrayList("");
+            }
+        } else if(args.length == 3) {
+            return Common.getInstance().removeAutoComplete(Lists.newArrayList("-t", "-c", "-cmsg"), args[2]);
+        } else if(args.length == 4) {
+            switch(args[2].toLowerCase()) {
+                case "-t":
+                    return Common.getInstance().removeAutoComplete(Lists.newArrayList("30", "60", "120", "180", "240", "300"), args[3]);
+                case "-c":
+                case "-cmsg":
+                    return Lists.newArrayList("");
+            }
+        }
+        return Lists.newArrayList();
     }
 }
