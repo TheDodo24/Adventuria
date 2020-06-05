@@ -1,7 +1,5 @@
 package de.thedodo24.commonPackage;
 
-import com.arangodb.ArangoDatabase;
-import com.earth2me.essentials.Essentials;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.commands.*;
 import de.thedodo24.commonPackage.listener.PlayerListener;
@@ -11,16 +9,11 @@ import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import lombok.Getter;
 import de.thedodo24.commonPackage.module.Module;
 import de.thedodo24.commonPackage.module.ModuleManager;
-import lombok.val;
-import net.ess3.api.Economy;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.permission.Permission;
-import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.*;
 
@@ -116,10 +109,8 @@ public class Common extends Module {
         }
         registerListener(new PlayerListener());
         new OntimeCommand();
-        new TrojanerCommand();
         new CacheCommand();
         new ScoreboardCommand();
-        new CountdownCommand();
         if(Bukkit.getOnlinePlayers().size() > 0) {
             Bukkit.getOnlinePlayers().forEach(ManagerScoreboard::new);
             Bukkit.getOnlinePlayers().forEach(all -> getPlayerOnline().put(all.getUniqueId(), System.currentTimeMillis()));
