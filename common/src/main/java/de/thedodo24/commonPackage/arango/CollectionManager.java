@@ -86,7 +86,6 @@ public class CollectionManager<Writable extends ArangoWritable<KeyType>, KeyType
         if(key != null) {
             if ((document = this.collection.getDocument(key.toString(), BaseDocument.class)) == null)
                 return null;
-
             Writable value = this.generator.generate(key);
             value.read(document);
 

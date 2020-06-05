@@ -1,7 +1,6 @@
 package de.thedodo24.commonPackage.player;
 
 import com.google.common.collect.Lists;
-import com.sun.jmx.snmp.SnmpInt;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.ArangoWritable;
 import com.arangodb.entity.BaseDocument;
