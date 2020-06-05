@@ -4,7 +4,7 @@ author: "TheDodo24"
 main: "de.thedodo24.Adventuria.Adventuria"
 api-version: "1.15"
 softdepend: [Vault]
-loadbefore: [Essentials]
+loadbefore: [Essentials, Towny]
 
 commands:
   money:
@@ -29,6 +29,9 @@ commands:
   countdown:
     description: "Countdown. Type '/countdown help' for help"
     aliases: [cd]
+    permission: advi.countdown
+  tpfarmwelt:
+    description: "Random teleport in farming world"
 
 permissions:
   advi.cache:
@@ -79,3 +82,5 @@ permissions:
     description: "/jail set"
   jail.notify:
     description: "Notifications of jail system"
+  advi.countdown:
+    description: "/countdown"
