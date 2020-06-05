@@ -13,7 +13,23 @@
         <module>bootstrap</module>
         <module>common</module>
         <module>jail</module>
+        <module>utilities</module>
+        <module>town</module>
     </modules>
+
+    <name>Adventuria</name>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://svn.apache.org/viewvc/maven</url>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,10 +41,6 @@
     </properties>
 
     <repositories>
-        <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
         <repository>
             <id>puha-repo</id>
             <url>https://repo.puha.io/repo/</url>
@@ -45,16 +57,23 @@
             <id>ess-repo</id>
             <url>https://ci.ender.zone/plugin/repository/everything/</url>
         </repository>
+        <repository>
+            <id>spigotmc-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>papermc</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
+        </repository>
     </repositories>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.spigotmc</groupId>
-                <artifactId>spigot</artifactId>
+                <groupId>com.destroystokyo.paper</groupId>
+                <artifactId>paper-api</artifactId>
                 <version>1.15.2-R0.1-SNAPSHOT</version>
-                <systemPath>D:/Programmierung/spigot-1.15.2.jar</systemPath>
-                <scope>system</scope>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
