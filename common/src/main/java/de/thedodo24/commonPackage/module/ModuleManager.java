@@ -9,6 +9,7 @@ import de.thedodo24.commonPackage.economy.ArmorStandManager;
 import de.thedodo24.commonPackage.economy.BankLogHandler;
 import de.thedodo24.commonPackage.economy.BankManager;
 import de.thedodo24.commonPackage.jail.JailManager;
+import de.thedodo24.commonPackage.towny.TownManager;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,7 @@ public class ModuleManager {
     private BankLogHandler logHandler;
     private ArmorStandManager armorStandManager;
     private JailManager jailManager;
+    private TownManager townManager;
     private MySQL mySQL;
 
 
@@ -48,6 +50,7 @@ public class ModuleManager {
         this.armorStandManager = new ArmorStandManager(database);
         this.jailManager = new JailManager(database);
         this.logHandler = new BankLogHandler(database);
+        this.townManager = new TownManager(database);
         this.mySQL = mySQL;
     }
 
