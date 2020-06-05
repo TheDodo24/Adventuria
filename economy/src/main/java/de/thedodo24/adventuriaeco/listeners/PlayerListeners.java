@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import de.thedodo24.adventuriaeco.Economy;
 import de.thedodo24.commonPackage.classes.SimpleInventory;
 import de.thedodo24.commonPackage.economy.BankAccount;
+import de.thedodo24.commonPackage.economy.BankLog;
+import de.thedodo24.commonPackage.economy.BankLogType;
 import de.thedodo24.commonPackage.economy.BankType;
 import de.thedodo24.commonPackage.player.User;
 import de.thedodo24.commonPackage.utils.ItemBuilder;
@@ -499,6 +501,9 @@ public class PlayerListeners implements Listener {
                                             Economy.getInstance().getManager().getBankManager().save(account);
                                             Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
                                             Economy.getInstance().getManager().getPlayerManager().save(user);
+                                            BankLog log = Economy.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount);
+                                            log.addHistory(System.currentTimeMillis(), BankLogType.DEPOSIT, p.getName(), value);
+                                            Economy.getInstance().getManager().getLogHandler().save(log);
                                             p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + account.getKey() + " §7eingezahlt und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
                                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                                         } else {
@@ -542,6 +547,9 @@ public class PlayerListeners implements Listener {
                                             Economy.getInstance().getManager().getBankManager().save(account);
                                             Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
                                             Economy.getInstance().getManager().getPlayerManager().save(user);
+                                            BankLog log = Economy.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount);
+                                            log.addHistory(System.currentTimeMillis(), BankLogType.WITHDRAW, p.getName(), value);
+                                            Economy.getInstance().getManager().getLogHandler().save(log);
                                             p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7vom Konto §2" + account.getKey() + " §7abgebucht und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
                                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                                     } else {
@@ -586,6 +594,12 @@ public class PlayerListeners implements Listener {
                                             Economy.getInstance().getManager().getBankManager().save(bankAccountFrom);
                                             Economy.getInstance().getManager().getBankManager().save(bankAccountTo);
                                             Economy.getInstance().getManager().getBankManager().save(Economy.getInstance().getManager().getBankManager().get("staatskasse"));
+                                            BankLog logFrom = Economy.getInstance().getManager().getLogHandler().getOrGenerate(accountFrom);
+                                            logFrom.addHistory(System.currentTimeMillis(), BankLogType.TRANSFER_FROM, p.getName(), value);
+                                            Economy.getInstance().getManager().getLogHandler().save(logFrom);
+                                            BankLog logTo = Economy.getInstance().getManager().getLogHandler().getOrGenerate(accountTo);
+                                            logTo.addHistory(System.currentTimeMillis(), BankLogType.TRANSFER_TO, p.getName(), value);
+                                            Economy.getInstance().getManager().getLogHandler().save(logTo);
                                             p.sendMessage(bankPrefix + "§7Du hast §2" + formatValue(((Long) value).doubleValue() / 100) + " §7auf das Konto §2" + accountTo + " §7überwiesen und §2" + formatValue(((Long) taxes).doubleValue() / 100) + " §7Steuern gezahlt.");
                                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                                         } else {
