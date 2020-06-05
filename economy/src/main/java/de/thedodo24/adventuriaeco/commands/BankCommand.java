@@ -297,6 +297,18 @@ public class BankCommand implements CommandExecutor, TabCompleter {
         transferHelp.addExtra(transferHelpCommand);
         transferHelp.addExtra(transferHelpInfo);
 
+        TextComponent logHelp = new ClickableText(prefix).build();
+        TextComponent logHelpCommand = new ClickableText("/bank log [Kontoname] <Seite>")
+                .setChatColor(ChatColor.DARK_GREEN)
+                .setClickMessage("/bank log ")
+                .setClickEventAction(ClickEvent.Action.SUGGEST_COMMAND)
+                .setHoverMessage("/bank log ")
+                .setHoverEventAction(HoverEvent.Action.SHOW_TEXT)
+                .build();
+        TextComponent logHelpInfo = new ClickableText(" | Zeigt die Transaktionen des Kontos an").setChatColor(ChatColor.GRAY).build();
+        logHelp.addExtra(logHelpCommand);
+        logHelp.addExtra(logHelpInfo);
+
         p.spigot().sendMessage(createHelp);
         p.spigot().sendMessage(balanceHelp);
         p.spigot().sendMessage(listHelp);
@@ -308,6 +320,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
         p.spigot().sendMessage(removeMemberHelp);
         p.spigot().sendMessage(removeOwnerHelp);
         p.spigot().sendMessage(transferHelp);
+        p.spigot().sendMessage(logHelp);
     }
 
     private void sendHelpMsg(CommandSender s) {
@@ -948,7 +961,6 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                         else
                                         if(!arg.equalsIgnoreCase("Infinity") && !arg.equalsIgnoreCase("-Infinity")) {
                                             value = (long) (Double.parseDouble(arg) * 100);
-                                            Bukkit.broadcastMessage(String.valueOf(value));
                                         } else {
                                             p.sendMessage(prefix + "§7Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
                                             p.sendMessage(prefix + "§7Der Kontostand des Kontos §2" + account.getKey() + " §7wurde durch §2CONSOLE §7auf §20A §7gesetzt.");
@@ -970,6 +982,11 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                             }
                                             if((account.getBalance() + value) < 0) {
                                                 p.sendMessage(prefix + "§7Dein Kontostand kann nicht in §cMinus §7gehen.");
+                                                return false;
+                                            }
+                                            long max = 9200000000000000000L;
+                                            if(value >  max) {
+                                                p.sendMessage(prefix + "§7Der Betrag ist zu hoch.");
                                                 return false;
                                             }
                                             account.depositMoney(value - taxes);
@@ -1018,7 +1035,6 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                             else {
                                                 if(!arg.equalsIgnoreCase("Infinity") && !arg.equalsIgnoreCase("-Infinity")) {
                                                     value = (long) (Double.parseDouble(arg) * 100);
-                                                    Bukkit.broadcastMessage(String.valueOf(value));
                                                 } else {
                                                     p.sendMessage(prefix + "§7Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
                                                     p.sendMessage(prefix + "§7Der Kontostand des Kontos §2" + account.getKey() + " §7wurde durch §2CONSOLE §7auf §20A §7gesetzt.");
@@ -1046,6 +1062,11 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                             }
                                             if((account.getBalance() + value) < 0) {
                                                 p.sendMessage(prefix + "§7Dein Kontostand kann nicht in §cMinus §7gehen.");
+                                                return false;
+                                            }
+                                            long max = 9200000000000000000L;
+                                            if(value >  max) {
+                                                p.sendMessage(prefix + "§7Der Betrag ist zu hoch.");
                                                 return false;
                                             }
                                             if(arg.equalsIgnoreCase("all")) {
@@ -1163,24 +1184,28 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                             p.sendMessage("§7Keine bisherigen Transaktionen gefunden.");
                                             return true;
                                         }
-                                        keySet.stream().skip(5*(site - 1)).limit(5 * site + 5 * (site - 1)).forEach(l ->
-                                                p.sendMessage("§8» §2" + formatDay.format(new Date(Long.parseLong(l))) + " §8- §2" + formatHour.format(new Date(Long.parseLong(l))) + "§8: " +
-                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ? "§4Eingezahlt" :
-                                                                (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_SET) ? "§4Gesetzt" :
-                                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§4Ausgezahlt" :
-                                                                                (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ? "§aEingezahlt" :
-                                                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ? "§cAusgezahlt" :
-                                                                                                (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ? "§cÜberweisung" :
-                                                                                                        (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§aÜberweisung" : "")))))))
-                                                        + " §8|| " + (bankAccount.getOwners().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§c" + log.get(l).get("player") :
-                                                        (bankAccount.getMembers().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§6" + log.get(l).get("player") : "§4" + log.get(l).get("player")))
-                                                        + " §8|| " + (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ||
-                                                        BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ||
-                                                        BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§a+" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
-                                                        BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ||
-                                                                BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ||
-                                                                BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§c-" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
-                                                                "§7" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) )));
+                                        if(keySet.stream().skip(5 * (site - 1)).limit(5).count() > 0) {
+                                            keySet.stream().skip(5*(site - 1)).limit(5).forEach(l ->
+                                                    p.sendMessage("§8» §2" + formatDay.format(new Date(Long.parseLong(l))) + " §8- §2" + formatHour.format(new Date(Long.parseLong(l))) + "§8: " +
+                                                            (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ? "§4Eingezahlt" :
+                                                                    (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_SET) ? "§4Gesetzt" :
+                                                                            (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§4Ausgezahlt" :
+                                                                                    (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ? "§aEingezahlt" :
+                                                                                            (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ? "§cAusgezahlt" :
+                                                                                                    (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ? "§cÜberweisung" :
+                                                                                                            (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§aÜberweisung" : "")))))))
+                                                            + " §8|| " + (bankAccount.getOwners().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§c" + log.get(l).get("player") :
+                                                            (bankAccount.getMembers().contains(Economy.getInstance().getManager().getPlayerManager().getByName((String) log.get(l).get("player")).getKey()) ? "§6" + log.get(l).get("player") : "§4" + log.get(l).get("player")))
+                                                            + " §8|| " + (BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_GIVE) ||
+                                                            BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.DEPOSIT) ||
+                                                            BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_TO) ? "§a+" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
+                                                            BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.TRANSFER_FROM) ||
+                                                                    BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.WITHDRAW) ||
+                                                                    BankLogType.valueOf(((String) log.get(l).get("type"))).equals(BankLogType.ADMIN_TAKE) ? "§c-" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) :
+                                                                    "§7" + formatValue(((Long) log.get(l).get("value")).doubleValue() / 100) )));
+                                        } else {
+                                            p.sendMessage(prefix + "§7Keine weiteren Transaktionen gefunden.");
+                                        }
                                     } else {
                                         p.sendMessage(prefix + "§2Argument 3 §7muss eine positive Ganzzahl sein.");
                                     }
@@ -1225,6 +1250,11 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                                             long taxes = (long) (value * 0.0025);
                                             if(taxes == 0)
                                                 taxes = 1;
+                                            long max = 9200000000000000000L;
+                                            if(value >  max) {
+                                                p.sendMessage(prefix + "§7Der Betrag ist zu hoch.");
+                                                return false;
+                                            }
                                             if(((ownAccount.getBalance() - value) - taxes) < 0) {
                                                 if(!arg.equalsIgnoreCase("all")) {
                                                     p.sendMessage(prefix + "§7Du hast nicht genügend Geld auf deinem §2Konto§7. §8(Steuern: " + formatValue(((Long) taxes).doubleValue() / 100) + ")");
@@ -1306,7 +1336,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
         if(commandSender instanceof Player) {
             Player p = (Player) commandSender;
             if(args.length == 1) {
-                List<String> list = Lists.newArrayList("create", "balance", "list", "delete", "addmember", "addowner", "removemember", "removeowner", "deposit", "withdraw");
+                List<String> list = Lists.newArrayList("create", "balance", "list", "delete", "addmember", "addowner", "removemember", "removeowner", "deposit", "withdraw", "log");
                 if(p.hasPermission("bank.admin")) {
                     list.add("admin");
                 }
@@ -1321,6 +1351,7 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                     case "deposit":
                     case "withdraw":
                     case "transfer":
+                    case "log":
                         return Common.getInstance().removeAutoComplete(Economy.getInstance().getManager().getBankManager().getBankAccounts(p.getUniqueId()).stream().map(BankAccount::getKey).collect(Collectors.toList()), args[1]);
                     case "delete":
                     case "addmember":
@@ -1371,6 +1402,8 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                     case "deposit":
                     case "withdraw":
                         return Common.getInstance().removeAutoComplete(Lists.newArrayList("all", "1000.0", "2500.0", "5000.0", "10000.0", "25000.0", "50000.0", "100000.0"), args[2]);
+                    case "log":
+                        return Lists.newArrayList("");
                 }
                 if(p.hasPermission("bank.admin")) {
                     switch(args[1].toLowerCase()) {
