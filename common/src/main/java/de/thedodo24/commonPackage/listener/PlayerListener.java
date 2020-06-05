@@ -11,6 +11,7 @@ import de.thedodo24.commonPackage.utils.TimeFormat;
 import net.ess3.api.Economy;
 import net.ess3.api.events.AfkStatusChangeEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
@@ -19,6 +20,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -31,6 +33,9 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PlayerListener implements Listener {
 
@@ -67,7 +72,11 @@ public class PlayerListener implements Listener {
             }
         }
         new ManagerScoreboard(p);
-        ManagerScoreboard.getScoreboardMap().forEach((key, val) -> val.sendScoreboard(Bukkit.getPlayer(key)));
+        ManagerScoreboard.getScoreboardMap().forEach((key, val) -> {
+            Bukkit.getOnlinePlayers().forEach(all -> val.getBoard().setPrefix(all));
+            val.getBoard().setPrefix(Bukkit.getPlayer(key));
+            val.sendScoreboard(Bukkit.getPlayer(key));
+        });
         //new ManagerScoreboard(p);
         //ManagerScoreboard.getScoreboardMap().forEach((key, val) -> p.setScoreboard(val.getBoard().getScoreboard()));
     }
