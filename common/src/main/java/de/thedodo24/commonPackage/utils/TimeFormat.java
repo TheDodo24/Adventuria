@@ -36,6 +36,11 @@ public class TimeFormat {
         return (minutes == 1 ? minutes + " Minute" : minutes + " Minuten");
     }
 
+    public static int getInHours(long time) {
+        long hours = ((long) (((double) time / (1000 * 60 * 60)) * 100));
+        return (int) (((Long) hours).doubleValue() / 100);
+    }
+
     public static String getInDays(long time) {
         long hours = ((long) (((double) time / (1000 * 60 * 60)) * 100));
         String hour;
