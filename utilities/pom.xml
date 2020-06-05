@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>economy</artifactId>
+    <artifactId>utilities</artifactId>
 
     <dependencies>
         <dependency>
@@ -24,11 +24,6 @@
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>common</artifactId>
             <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
