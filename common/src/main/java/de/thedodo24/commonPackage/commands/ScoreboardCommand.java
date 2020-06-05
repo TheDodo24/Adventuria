@@ -6,8 +6,6 @@ import de.thedodo24.commonPackage.economy.BankAccount;
 import de.thedodo24.commonPackage.player.CustomScoreboardType;
 import de.thedodo24.commonPackage.player.User;
 import de.thedodo24.commonPackage.utils.ManagerScoreboard;
-import net.milkbowl.vault.economy.Economy;
-import net.minecraft.server.v1_15_R1.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -333,7 +331,7 @@ public class ScoreboardCommand implements CommandExecutor, TabCompleter {
                 return Common.getInstance().removeAutoComplete(returnList, args[0]);
             } else if(args.length == 2) {
                 if(args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("off"))
-                    return Lists.newArrayList("0", "1", "2", "3");
+                    return Common.getInstance().removeAutoComplete(Lists.newArrayList("0", "1", "2", "3"), args[1]);
             } else if(args.length == 3) {
                 if(args[0].equalsIgnoreCase("set")) {
                     List<String> returnList = Lists.newArrayList("online", "money", "ontime", "bank", "corp");
