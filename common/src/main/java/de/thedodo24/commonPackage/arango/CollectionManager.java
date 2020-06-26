@@ -4,8 +4,11 @@ import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
+import com.google.common.collect.Lists;
+import de.thedodo24.commonPackage.Common;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -15,6 +18,9 @@ public class CollectionManager<Writable extends ArangoWritable<KeyType>, KeyType
     protected Map<KeyType, Writable>               cache;
     protected CacheCondition<Writable, KeyType>    cacheCondition;
     protected WritableGenerator<Writable, KeyType> generator;
+    private List<String> charList = Lists.newArrayList("!", "\"", "§", "$", "%", "&", "/",
+            "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", ":", ".", ";",
+            ",", "<", ">", "~", "\\", "}", "]", "[", "{", "³", "²", "^", "°", "ß", "ü", "ä", "ö", "Ä", "Ö", "Ü");
 
     public CollectionManager(String collection, ArangoDatabase database, WritableGenerator<Writable, KeyType> generator)
     {
@@ -69,6 +75,10 @@ public class CollectionManager<Writable extends ArangoWritable<KeyType>, KeyType
 
     public Writable get(KeyType key)
     {
+        if(key instanceof String)
+             if(charList.stream().anyMatch(((String) key)::contains)) {
+                 return null;
+             }
         if (this.isCacheEnabled() && this.cache.containsKey(key))
             return this.cache.get(key);
 
