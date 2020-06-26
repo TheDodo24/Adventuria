@@ -9,6 +9,8 @@ import de.thedodo24.commonPackage.economy.ArmorStandManager;
 import de.thedodo24.commonPackage.economy.BankLogHandler;
 import de.thedodo24.commonPackage.economy.BankManager;
 import de.thedodo24.commonPackage.jail.JailManager;
+import de.thedodo24.commonPackage.towny.NationManager;
+import de.thedodo24.commonPackage.towny.PlotManager;
 import de.thedodo24.commonPackage.towny.TownManager;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,6 +34,8 @@ public class ModuleManager {
     private ArmorStandManager armorStandManager;
     private JailManager jailManager;
     private TownManager townManager;
+    private PlotManager plotManager;
+    private NationManager nationManager;
     private MySQL mySQL;
 
 
@@ -51,6 +55,8 @@ public class ModuleManager {
         this.jailManager = new JailManager(database);
         this.logHandler = new BankLogHandler(database);
         this.townManager = new TownManager(database);
+        this.plotManager = new PlotManager(database);
+        this.nationManager = new NationManager(database);
         this.mySQL = mySQL;
     }
 
@@ -110,7 +116,7 @@ public class ModuleManager {
 
         Module module;
         if((module = registeredModules.get(moduleName)) == null)
-            throw(new IllegalArgumentException("de.thedodo24.commonPackage.module not registered"));
+            throw(new IllegalArgumentException("module not registered"));
 
         try {
 
