@@ -99,62 +99,72 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                 sendHelpMessage(s);
             }
         } else if(args.length == 3) {
-            if(s.hasPermission("tlohn.admin")) {
                 if(args[0].equalsIgnoreCase("give")) {
-                    BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
-                    if(teamAccount != null) {
-                        Bukkit.dispatchCommand(s, "bank admin give " + teamAccount.getKey() + " " + args[2]);
+                    if(s.hasPermission("tlohn.admin")) {
+                        BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
+                        if (teamAccount != null) {
+                            Bukkit.dispatchCommand(s, "bank admin give " + teamAccount.getKey() + " " + args[2]);
+                        } else {
+                            s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
+                        }
                     } else {
-                        s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
+                        s.sendMessage(noPerm("tlohn.admin"));
                     }
                 } else if(args[0].equalsIgnoreCase("take")) {
-                    BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
-                    if(teamAccount != null) {
-                        Bukkit.dispatchCommand(s, "bank admin take " + teamAccount.getKey() + " " + args[2]);
+                    if(s.hasPermission("tlohn.admin")) {
+                        BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
+                        if (teamAccount != null) {
+                            Bukkit.dispatchCommand(s, "bank admin take " + teamAccount.getKey() + " " + args[2]);
+                        } else {
+                            s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
+                        }
                     } else {
-                        s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
+                        s.sendMessage(noPerm("tlohn.admin"));
                     }
                 } else if(args[0].equalsIgnoreCase("set")) {
-                    BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
-                    if(teamAccount != null) {
-                        Bukkit.dispatchCommand(s, "bank admin set " + teamAccount.getKey() + " " + args[2]);
+                    if(s.hasPermission("tlohn.admin")) {
+                        BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
+                        if (teamAccount != null) {
+                            Bukkit.dispatchCommand(s, "bank admin set " + teamAccount.getKey() + " " + args[2]);
+                        } else {
+                            s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
+                        }
                     } else {
-                        s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
+                        s.sendMessage(noPerm("tlohn.admin"));
                     }
                 } else if(args[0].equalsIgnoreCase("pay")) {
                     if(s instanceof Player) {
                         Player p = (Player) s;
                         BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().getAccountForPlayer(p);
                         if(teamAccount != null) {
-                            if(teamAccount.getMembers().contains(p.getUniqueId())) {
+                            if (teamAccount.getMembers().contains(p.getUniqueId())) {
                                 User user = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
-                                if(user != null) {
+                                if (user != null) {
                                     String arg = args[2];
-                                    if(arg.contains(","))
+                                    if (arg.contains(","))
                                         arg = arg.replace(",", ".");
                                     long value;
                                     try {
-                                        if(arg.equalsIgnoreCase("all"))
+                                        if (arg.equalsIgnoreCase("all"))
                                             value = user.getBalance();
-                                        else
-                                        if(!arg.equalsIgnoreCase("Infinity"))
+                                        else if (!arg.equalsIgnoreCase("Infinity"))
                                             value = (long) (Double.parseDouble(arg) * 100);
                                         else {
                                             p.sendMessage("§7§l| §aGeld §7» Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
                                             p.sendMessage("§7§l| §aGeld §7» Der Kontostand des Spielers §a" + p.getName() + " §7wurde durch §aCONSOLE §7auf §a0A §7gesetzt.");
                                             return false;
                                         }
-                                    } catch(NumberFormatException ignored) {
+                                    } catch (NumberFormatException ignored) {
                                         p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
                                         return false;
                                     }
-                                    if(value > 0) {
-                                        if((teamAccount.getBalance() - value) >= 0) {
-                                            if((user.getBalance() + value) < 0) {
+                                    if (value > 0) {
+                                        if ((teamAccount.getBalance() - value) >= 0) {
+                                            if ((user.getBalance() + value) < 0) {
                                                 p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
                                                 return false;
                                             }
-                                            if((teamAccount.getBalance()) < 0) {
+                                            if ((teamAccount.getBalance()) < 0) {
                                                 p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
                                                 return false;
                                             }
@@ -164,7 +174,7 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                                             Economy.getInstance().getManager().getPlayerManager().save(user);
                                             p.sendMessage(prefix + "§7Du hast §c" + user.getName() + " §7einen Lohn von §c" + formatValue(((Long) value).doubleValue() / 100) + " §7überwießen.");
                                             Player to;
-                                            if((to = Bukkit.getPlayer(user.getKey())) != null) {
+                                            if ((to = Bukkit.getPlayer(user.getKey())) != null) {
                                                 to.sendMessage(prefix + "§7Dir wurde ein Lohn von §c" + formatValue(((Long) value).doubleValue() / 100) + " §7überwießen.");
                                             }
                                         }
@@ -175,7 +185,7 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                                     p.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7existiert nicht.");
                                 }
                             } else {
-                                p.sendMessage(prefix + "§7Du bist kein §cTeam-Leiter§7.");
+                                p.sendMessage(prefix + "§7Du hast keine Berechtigung dazu.");
                             }
                         } else {
                             p.sendMessage(prefix + "§7Du bist in keinem §cTeam§7.");
@@ -215,9 +225,6 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                 } else {
                     sendHelpMessage(s);
                 }
-            } else {
-                s.sendMessage(noPerm("tlohn.admin"));
-            }
         } else {
             sendHelpMessage(s);
         }

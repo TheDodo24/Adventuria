@@ -46,15 +46,19 @@ public class BankManager extends CollectionManager<BankAccount, String> {
         return this.cache.values().stream().filter(acc -> acc.getOwners().contains(uuid)).collect(Collectors.toList());
     }
 
-    public BankAccount getAccountForPlayer(OfflinePlayer p) {
-        String primaryGroup = Common.getInstance().getPerms().getPrimaryGroup("Freebuild", p);
-        switch(primaryGroup.toLowerCase()) {
+    public BankAccount getAccountForPlayer(Player p) {
+        Optional<BankAccount> bc = bankAccounts().stream().filter(b -> b.getKey().startsWith("team-")).filter(b -> b.getMembers().contains(p.getUniqueId())).findFirst();
+        if(bc.isPresent()) {
+            return bc.get();
+        }
+        String group = Common.getInstance().getPerms().getPrimaryGroup(p).toLowerCase();
+        switch(group) {
             case "hoster":
             case "administrator":
             case "moderator":
                 return get("team-sl");
             default:
-                return get("team-" + primaryGroup.toLowerCase());
+                return get("team-" + group);
         }
     }
 
