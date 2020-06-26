@@ -3,8 +3,8 @@ version: "1.0"
 author: "TheDodo24"
 main: "de.thedodo24.Adventuria.Adventuria"
 api-version: "1.15"
-softdepend: [Vault]
-loadbefore: [Essentials, Towny]
+softdepend: [Vault, ProtocolLib]
+loadbefore: [Essentials, Towny, WorldEdit]
 
 commands:
   money:
@@ -23,7 +23,6 @@ commands:
     permission: advi.cache
   tlohn:
     description: "Management of team wage. Type '/tlohn help' for help"
-    permission: tlohn.admin
   sboard:
     description: "Scoreboard management. Type '/sboard help' for help"
   countdown:
@@ -32,12 +31,53 @@ commands:
     permission: advi.countdown
   tpfarmwelt:
     description: "Random teleport in farming world"
+  adventuria:
+    description: "Management command for plugin"
+    permission: advi.manage
+  town:
+    description: "Town"
+    aliases: [t]
+  townadmin:
+    description: "Townadmin"
+    aliases: [ta]
+  townmayor:
+    description: "Townmayor"
+    aliases: [tm]
+  townresident:
+    description: "Townresident"
+    aliases: [tr]
+  plot:
+    description: "Plot"
+  townchat:
+    description: "Townchat"
+    aliases: [tc]
+  nation:
+    description: "Nation"
+    aliases: [n]
+  nationchat:
+    description: "Nationchat"
+    aliases: [nc]
+
 
 permissions:
   advi.cache:
     description: "Cache command"
   advi.util.trojaner:
     description: "Trojaner command"
+  bank.*:
+    description: "Bank admin commands"
+    children:
+      bank.admin: true
+      bank.addas: true
+      bank.delas: true
+      bank.delete: true
+      bank.give: true
+      bank.take: true
+      bank.set: true
+      bank.addmember: true
+      bank.removemember: true
+      bank.addowner: true
+      bank.removeowner: true
   bank.admin:
     description: "Help message & tab complete for admin sub commands"
   bank.addas:
@@ -60,6 +100,14 @@ permissions:
     description: "/bank admin addowner"
   bank.removeowner:
     description: "/bank admin removeowner"
+  money.*:
+    description: "Money admin commands"
+    children:
+      money.admin: true
+      money.give: true
+      money.take: true
+      money.set: true
+      money.notify: true
   money.admin:
     description: "Help message & tab complete for money commands"
   money.give:
@@ -72,6 +120,14 @@ permissions:
     description: "Money notifications"
   tlohn.admin:
     description: "TeamLohn management"
+  jail.*:
+    description: "Jail admin commands"
+    children:
+      jail.free: true
+      jail.info: true
+      jail.jail: true
+      jail.set: true
+      jail.notify: true
   jail.free:
     description: "/jail free"
   jail.info:
@@ -82,5 +138,75 @@ permissions:
     description: "/jail set"
   jail.notify:
     description: "Notifications of jail system"
+  advi.*:
+    description: "Plugin management admin commands"
+    children:
+      advi.countdown: true
+      advi.manage: true
+      advi.cache: true
+      advi.util.trojaner: true
   advi.countdown:
     description: "/countdown"
+  advi.manage:
+    description: "/adventuria"
+  towny.*:
+    description: "Towny commands"
+    children:
+      towny.admin.*: true
+  towny.admin.*:
+    description: "Towny admin commands"
+    children:
+      towny.admin.town.*: true
+  towny.admin.town.*:
+    description: "Towny admin town commands"
+    children:
+      towny.admin.town.set.*: true
+      towny.admin.town.withdraw: true
+      towny.admin.town.deposit: true
+      towny.admin.town.rename: true
+      towny.admin.town.create: true
+      towny.admin.town.delete: true
+      towny.admin.plot.*: true
+      towny.admin.plot.set: true
+  towny.admin.town.set.*:
+    description: "Towny admin town set commands"
+    children:
+      towny.admin.town.set.mayor: true
+      towny.admin.town.set.public: true
+      towny.admin: true
+  towny.admin.plot.*:
+    description: "Towny plot commands"
+    children:
+      towny.admin.plot.nfs: true
+      towny.admin.plot.fs: true
+      towny.admin.plot.bypass: true
+  towny.admin.plot.set.*:
+    description: "Towny plot set commands"
+    children:
+      towny.admin.plot.set.perm: true
+  towny.admin:
+    description: "Help messages and tab complete"
+  towny.admin.town.spawn:
+    description: "Spawn to private town"
+  towny.admin.town.set.mayor:
+    description: "Set mayor of a town"
+  towny.admin.town.withdraw:
+    description: "Withdraw of town bank"
+  towny.admin.town.deposit:
+    description: "Deposit of town bank"
+  towny.admin.town.rename:
+    description: "Rename a town"
+  towny.admin.town.create:
+    description: "Create a town"
+  towny.admin.town.delete:
+    description: "Delete a town"
+  towny.admin.town.set.public:
+    description: "Set publicity of town"
+  towny.admin.plot.nfs:
+    description: "Set plot not for sale"
+  towny.admin.plot.fs:
+    description: "Set plot for sale"
+  towny.admin.plot.set.perm:
+    description: "Set perms of plot"
+  towny.admin.plot.bypass:
+    description: "Bypass permissions of plot"
