@@ -28,7 +28,7 @@ public class TPFarmweltCommand implements CommandExecutor {
                     if(toTeleport.getWorld().getName().startsWith("Farmwelt")) {
                         int x = ThreadLocalRandom.current().nextInt(-10000, 10000);
                         int z = ThreadLocalRandom.current().nextInt(-10000, 10000);
-                        int highestBlock = toTeleport.getWorld().getHighestBlockYAt(x, z) + 1;
+                        int highestBlock = toTeleport.getWorld().getHighestBlockYAt(x, z) + 2;
                         toTeleport.teleport(new Location(toTeleport.getWorld(), x, highestBlock, z));
                     }
                 } else {
