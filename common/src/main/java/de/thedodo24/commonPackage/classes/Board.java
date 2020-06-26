@@ -33,90 +33,130 @@ public class Board {
             boardLines.add(new BoardLine(color, i, team));
         }
         Team t;
-        if(scoreboard.getTeam("000") == null){
-            t = scoreboard.registerNewTeam("000");
-            t.setPrefix("§5");
+        if(scoreboard.getTeam("000") != null)
+            scoreboard.getTeam("000").unregister();
+        t = scoreboard.registerNewTeam("000");
+        t.setPrefix("§5");
+
+        if(scoreboard.getTeam("001") != null){
+            scoreboard.getTeam("001").unregister();
         }
-        if(scoreboard.getTeam("001") == null){
-            t = scoreboard.registerNewTeam("001");
-            t.setPrefix("§4");
+        t = scoreboard.registerNewTeam("001");
+        t.setPrefix("§4");
+
+        if(scoreboard.getTeam("002") != null){
+            scoreboard.getTeam("002").unregister();
         }
-        if(scoreboard.getTeam("002") == null){
-            t = scoreboard.registerNewTeam("002");
-            t.setPrefix("§2");
+        t = scoreboard.registerNewTeam("002");
+        t.setPrefix("§2");
+
+        if(scoreboard.getTeam("003") != null){
+            scoreboard.getTeam("003").unregister();
         }
-        if(scoreboard.getTeam("003") == null){
-            t = scoreboard.registerNewTeam("003");
-            t.setPrefix("§b");
+        t = scoreboard.registerNewTeam("003");
+        t.setPrefix("§b");
+
+        if(scoreboard.getTeam("004") != null){
+            scoreboard.getTeam("004").unregister();
         }
-        if(scoreboard.getTeam("004") == null){
-            t = scoreboard.registerNewTeam("004");
-            t.setPrefix("§c");
+        t = scoreboard.registerNewTeam("004");
+        t.setPrefix(ChatColor.RED + "");
+
+        if(scoreboard.getTeam("005") != null){
+            scoreboard.getTeam("005").unregister();
         }
-        if(scoreboard.getTeam("005") == null){
-            t = scoreboard.registerNewTeam("005");
-            t.setPrefix("§c");
+        t = scoreboard.registerNewTeam("005");
+        t.setPrefix(ChatColor.RED + "");
+
+        if(scoreboard.getTeam("006") != null){
+            scoreboard.getTeam("006").unregister();
         }
-        if(scoreboard.getTeam("006") == null){
-            t = scoreboard.registerNewTeam("006");
-            t.setPrefix("§9");
+        t = scoreboard.registerNewTeam("006");
+        t.setPrefix("§9");
+
+        if(scoreboard.getTeam("007") != null){
+            scoreboard.getTeam("007").unregister();
         }
-        if(scoreboard.getTeam("007") == null){
-            t = scoreboard.registerNewTeam("007");
-            t.setPrefix("§9");
+        t = scoreboard.registerNewTeam("007");
+        t.setPrefix("§9");
+
+        if(scoreboard.getTeam("008") != null){
+            scoreboard.getTeam("008").unregister();
         }
-        if(scoreboard.getTeam("008") == null){
-            t = scoreboard.registerNewTeam("008");
-            t.setPrefix("§a");
+        t = scoreboard.registerNewTeam("008");
+        t.setPrefix("§a");
+
+        if(scoreboard.getTeam("009") != null){
+            scoreboard.getTeam("009").unregister();
         }
-        if(scoreboard.getTeam("009") == null){
-            t = scoreboard.registerNewTeam("009");
-            t.setPrefix("§a");
+        t = scoreboard.registerNewTeam("009");
+        t.setPrefix("§a");
+
+        if(scoreboard.getTeam("010") != null){
+            scoreboard.getTeam("010").unregister();
         }
-        if(scoreboard.getTeam("010") == null){
-            t = scoreboard.registerNewTeam("010");
-            t.setPrefix("§b");
+        t = scoreboard.registerNewTeam("010");
+        t.setPrefix("§b");
+
+        if(scoreboard.getTeam("011") != null){
+            scoreboard.getTeam("011").unregister();
         }
-        if(scoreboard.getTeam("011") == null){
-            t = scoreboard.registerNewTeam("011");
-            t.setPrefix("§b");
+        t = scoreboard.registerNewTeam("011");
+        t.setPrefix("§b");
+
+        if(scoreboard.getTeam("012") != null){
+            scoreboard.getTeam("012").unregister();
         }
-        if(scoreboard.getTeam("012") == null){
-            t = scoreboard.registerNewTeam("012");
-            t.setPrefix("§e");
+        t = scoreboard.registerNewTeam("012");
+        t.setPrefix("§e");
+
+        if(scoreboard.getTeam("013") != null){
+            scoreboard.getTeam("013").unregister();
         }
-        if(scoreboard.getTeam("013") == null){
-            t = scoreboard.registerNewTeam("013");
-            t.setPrefix("§e");
+        t = scoreboard.registerNewTeam("013");
+        t.setPrefix("§e");
+
+        if(scoreboard.getTeam("014") != null){
+            scoreboard.getTeam("014").unregister();
         }
-        if(scoreboard.getTeam("014") == null){
-            t = scoreboard.registerNewTeam("014");
-            t.setPrefix("§3");
+        t = scoreboard.registerNewTeam("014");
+        t.setPrefix("§3");
+
+        if(scoreboard.getTeam("015") != null){
+            scoreboard.getTeam("015").unregister();
         }
-        if(scoreboard.getTeam("015") == null){
-            t = scoreboard.registerNewTeam("015");
-            t.setPrefix("§3");
+        t = scoreboard.registerNewTeam("015");
+        t.setPrefix("§3");
+
+        if(scoreboard.getTeam("016") != null){
+            scoreboard.getTeam("016").unregister();
         }
-        if(scoreboard.getTeam("016") == null){
-            t = scoreboard.registerNewTeam("016");
-            t.setPrefix("§6");
+        t = scoreboard.registerNewTeam("016");
+        t.setPrefix("§6");
+
+        if(scoreboard.getTeam("017") != null){
+            scoreboard.getTeam("017").unregister();
         }
-        if(scoreboard.getTeam("017") == null){
-            t = scoreboard.registerNewTeam("017");
-            t.setPrefix("§6");
+        t = scoreboard.registerNewTeam("017");
+        t.setPrefix("§6");
+
+        if(scoreboard.getTeam("018") != null){
+            scoreboard.getTeam("018").unregister();
         }
-        if(scoreboard.getTeam("018") == null){
-            t = scoreboard.registerNewTeam("018");
-            t.setPrefix("§6");
+        t = scoreboard.registerNewTeam("018");
+        t.setPrefix("§6");
+
+        if(scoreboard.getTeam("019") != null){
+            scoreboard.getTeam("019").unregister();
         }
-        if(scoreboard.getTeam("019") == null){
-            t = scoreboard.registerNewTeam("019");
-            t.setPrefix("§d");
+        t = scoreboard.registerNewTeam("019");
+        t.setPrefix("§d");
+
+        if(scoreboard.getTeam("020") != null){
+            scoreboard.getTeam("020").unregister();
         }
-        if(scoreboard.getTeam("020") == null){
-            t = scoreboard.registerNewTeam("020");
-            t.setPrefix("§d");
-        }
+        t = scoreboard.registerNewTeam("020");
+        t.setPrefix("§d");
     }
 
 
@@ -189,7 +229,7 @@ public class Board {
                 break;
         }
         scoreboard.getTeams().stream().filter(t -> t.getEntries().contains(p.getName())).forEach(t -> t.removeEntry(p.getName()));
-        scoreboard.getTeam(team).addEntry(p.getName());
+        scoreboard.getTeam(team).addPlayer(p);
         String groupChat = Common.getInstance().getPerms().getPrimaryGroup(p);
         String prefix = Common.getInstance().getChat().getGroupPrefix("", groupChat).replaceAll("(&([a-z0-9]))", "§$2");
         String suffix = Common.getInstance().getChat().getGroupSuffix("", group).replaceAll("(&([a-z0-9]))", "§$2");
