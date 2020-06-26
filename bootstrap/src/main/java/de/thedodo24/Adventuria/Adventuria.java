@@ -3,10 +3,13 @@ package de.thedodo24.Adventuria;
 import com.arangodb.ArangoDB;
 import com.arangodb.ArangoDatabase;
 import de.thedodo24.adventuria.jail.Jail;
+import de.thedodo24.adventuria.town.Towny;
+import de.thedodo24.adventuria.utilspackage.Utils;
 import de.thedodo24.adventuriaeco.Economy;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.classes.MySQL;
 import de.thedodo24.commonPackage.module.Module;
+import de.thedodo24.commonPackage.towny.Town;
 import lombok.Getter;
 import de.thedodo24.commonPackage.module.ModuleManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,7 +55,7 @@ public class Adventuria extends JavaPlugin {
         mySQL.createInstance();
 
         moduleManager = new ModuleManager("modules", getArangoDatabase(),this, mySQL);
-        moduleManager.loadModules(Common.class, Economy.class, Jail.class);
+        moduleManager.loadModules(Common.class, Economy.class, Jail.class, Utils.class, Towny.class);
     }
 
     @Override
