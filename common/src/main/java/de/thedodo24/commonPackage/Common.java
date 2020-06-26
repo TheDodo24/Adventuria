@@ -25,11 +25,12 @@ public class Common extends Module {
     private static Common instance;
     private final Map<UUID, Long> playerOnline = new HashMap<>();
     private final Map<UUID, Long> afkPlayer = new HashMap<>();
-    private List<String> teamAccounts = Lists.newArrayList("team-sl", "team-ingenieur", "team-developer", "team-supporter", "team-polizist", "team-mva", "team-fbt", "team-helfer");
+    private List<String> teamAccounts = Lists.newArrayList("team-sl", "team-ingenieur", "team-developer", "team-supporter", "team-polizist", "team-mva", "team-mva-gewinn", "team-fbt", "team-helfer");
     private Permission perms = null;
     private Chat chat = null;
 
 
+    private List<String> charList;
 
     private long nextDay;
     private long nextWeek;
@@ -107,10 +108,14 @@ public class Common extends Module {
         } catch (Exception e) {
             System.err.println("[Adventuria] Vault is depended to load this plugin");
         }
+        charList = Lists.newArrayList("!", "\"", "§", "$", "%", "&", "/",
+                "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", ":", ".", ";",
+                ",", "<", ">", "~", "\\", "}", "]", "[", "{", "³", "²", "^", "°", "ß", "ü", "ä", "ö", "Ä", "Ö", "Ü");
         registerListener(new PlayerListener());
         new OntimeCommand();
         new CacheCommand();
         new ScoreboardCommand();
+        new AdventuriaCommand();
         if(Bukkit.getOnlinePlayers().size() > 0) {
             Bukkit.getOnlinePlayers().forEach(ManagerScoreboard::new);
             Bukkit.getOnlinePlayers().forEach(all -> getPlayerOnline().put(all.getUniqueId(), System.currentTimeMillis()));
