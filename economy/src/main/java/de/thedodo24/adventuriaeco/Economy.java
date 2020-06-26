@@ -64,7 +64,7 @@ public class Economy extends Module {
         armorStandDelList = Lists.newArrayList();
         chatListenerCreate = Lists.newArrayList();
         charList = Lists.newArrayList("!", "\"", "§", "$", "%", "&", "/",
-                "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", "_", "-", ":", ".", ";",
+                "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", ":", ".", ";",
                 ",", "<", ">", "~", "\\", "}", "]", "[", "{", "³", "²", "^", "°", "ß", "ü", "ä", "ö", "Ä", "Ö", "Ü");
         chatListenerTransfer = new HashMap<>();
         registerCommands();
