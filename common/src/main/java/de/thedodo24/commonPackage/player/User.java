@@ -4,15 +4,15 @@ import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.ArangoWritable;
 import com.arangodb.entity.BaseDocument;
+import de.thedodo24.commonPackage.towny.Town;
+import de.thedodo24.commonPackage.towny.TownRank;
 import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Sign;
 import org.bukkit.scoreboard.ScoreboardManager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 
 @Getter
@@ -46,6 +46,7 @@ public class User implements ArangoWritable<UUID> {
                 put("value", "");
             }});
         }});
+        values.put("friends", Lists.newArrayList());
     }
 
     @Override
@@ -96,6 +97,8 @@ public class User implements ArangoWritable<UUID> {
 
     public void setName(String name) { updateProperty("name", name); }
 
+    // ECONOMY
+
     public long getBalance() {
         return (long) getProperty("moneyBalance");
     }
@@ -120,15 +123,17 @@ public class User implements ArangoWritable<UUID> {
         return v;
     }
 
+    // JAIL
+
     public void setJailed(int blocks) {
-        Map<String, Integer> jailedParameters = new HashMap<>();
+        Map<String, Long> jailedParameters = new HashMap<>();
         if(isJailed()) {
-            jailedParameters.put("max", getMaxJailBlocks());
+            jailedParameters.put("max", (long) getMaxJailBlocks());
         } else {
-            jailedParameters.put("max", blocks);
+            jailedParameters.put("max", (long) blocks);
         }
 
-        jailedParameters.put("destroyed", blocks);
+        jailedParameters.put("destroyed", (long) blocks);
         updateProperty("jail", jailedParameters);
     }
 
@@ -143,15 +148,17 @@ public class User implements ArangoWritable<UUID> {
 
     public int getDestroyedJailBlocks() {
         if(this.values.containsKey("jail"))
-            return ((Map<String, Integer>) getProperty("jail")).get("destroyed");
+            return ((Map<String, Long>) getProperty("jail")).get("destroyed").intValue();
         return 0;
     }
 
     public int getMaxJailBlocks() {
         if(this.values.containsKey("jail"))
-            return ((Map<String, Integer>) getProperty("jail")).get("max");
+            return ((Map<String, Long>) getProperty("jail")).get("max").intValue();
         return 0;
     }
+
+    // CUSTOM SCOREBOARD
 
     public void setCustomScoreboard(Map<String, Map<String, String>> customScoreboard) {
         updateProperty("scoreboard", customScoreboard);
@@ -199,6 +206,8 @@ public class User implements ArangoWritable<UUID> {
     public Map<String, Map<String, String>> getCustomScoreboard() {
         return ((Map<String, Map<String, String>>) getProperty("scoreboard"));
     }
+
+    // ONTIME
 
     public Map<String, Object> getOntimeMap() {
         Map<String, Object> ontimeMap = (Map<String, Object>) getProperty("ontime");
@@ -329,6 +338,61 @@ public class User implements ArangoWritable<UUID> {
         newAfkTimeHistoryMap.put("1", afkTime);
         ontimeHistoryMap.replace("ontime", newHistoryOntimeMap);
         ontimeHistoryMap.replace("afkTime", newAfkTimeHistoryMap);
+    }
+
+    // TOWN
+
+    public boolean checkTownMember() {
+        return isSetProperty("town");
+    }
+
+    public void setTown(String townName, TownRank rank) {
+        updateProperty("town", new HashMap<String, Object>() {{ put("name", townName); put("rank", rank.toString()); }});
+    }
+
+    public void removeTown() {
+        deleteProperty("town");
+    }
+
+    public String getTownString() {
+        Map<String, Object> townMap = (Map<String, Object>) getProperty("town");
+        return (String) townMap.get("name");
+    }
+
+    public Town getTown() {
+        Map<String, Object> townMap = (Map<String, Object>) getProperty("town");
+        return Common.getInstance().getManager().getTownManager().get((String) townMap.get("name"));
+    }
+
+    public TownRank getTownRank() {
+        Map<String, Object> townMap = (Map<String, Object>) getProperty("town");
+        return TownRank.valueOf((String) townMap.get("rank"));
+    }
+
+    public void updateTownRank(TownRank rank) {
+        Map<String, Object> townMap = (Map<String, Object>) getProperty("town");
+        townMap.replace("rank", rank.toString());
+        updateProperty("town", townMap);
+    }
+
+    public List<String> getFriends() {
+        return (List<String>) getProperty("friends");
+    }
+
+    public boolean checkFriend(UUID uuid) {
+        return ((List<String>) getProperty("friends")).stream().anyMatch(f -> f.equalsIgnoreCase(uuid.toString()));
+    }
+
+    public void addFriend(UUID uuid) {
+        List<String> friends = (List<String>) getProperty("friends");
+        friends.add(uuid.toString());
+        updateProperty("friends", friends);
+    }
+
+    public void removeFriend(UUID uuid) {
+        List<String> friends = (List<String>) getProperty("friends");
+        friends.remove(uuid.toString());
+        updateProperty("friends", friends);
     }
 
 }
