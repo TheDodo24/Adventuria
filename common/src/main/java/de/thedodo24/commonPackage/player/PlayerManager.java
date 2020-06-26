@@ -7,10 +7,12 @@ import com.arangodb.velocypack.VPackSlice;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.CollectionManager;
+import de.thedodo24.commonPackage.towny.Town;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 public class PlayerManager extends CollectionManager<User, UUID> {
@@ -95,6 +97,11 @@ public class PlayerManager extends CollectionManager<User, UUID> {
         }
         this.closeCursor(cursor);
         return list;
+    }
+
+    public List<User> getResidents(Town town) {
+        List<User> users = getUsers();
+        return users.stream().filter(User::checkTownMember).filter(user -> user.getTown().getKey().equalsIgnoreCase(town.getKey())).collect(Collectors.toList());
     }
 
     @Override
