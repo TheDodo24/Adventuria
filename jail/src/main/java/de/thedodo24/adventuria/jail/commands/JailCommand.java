@@ -103,32 +103,36 @@ public class JailCommand implements CommandExecutor, TabCompleter {
                         return false;
                     }
                     User u = Jail.getInstance().getManager().getPlayerManager().getByName(name);
-                    if(!u.isJailed()) {
-                        if(blocks > 0) {
-                            u.setJailed(blocks);
-                            Jail.getInstance().getManager().getPlayerManager().save(u);
-                            Player p;
-                            if((p = Bukkit.getPlayer(u.getKey())) != null) {
-                                name = p.getName();
-                                p.teleport(Jail.getInstance().getManager().getJailManager().getLocation("location"));
-                                p.getInventory().addItem(Jail.getInstance().getDiamondPickaxe());
-                                p.sendMessage(prefix + "§7Du wurdest zu §cSozialstunden §7eingesperrt. §7Du musst §5" + blocks + (blocks == 1? " Obsidian-Block" : " Obsidian-Blöcke") + " §7abbauen.");
-                                BossBar bossBar = Bukkit.createBossBar(blocks + (blocks == 1 ? " Block" : " Blöcke"), BarColor.PURPLE, BarStyle.SEGMENTED_20);
-                                bossBar.setProgress(1);
-                                bossBar.addPlayer(p);
-                                Jail.getInstance().getBossBarMap().put(p.getUniqueId(), bossBar);
+                    if(u != null) {
+                        if(!u.isJailed()) {
+                            if(blocks > 0) {
+                                u.setJailed(blocks);
+                                Jail.getInstance().getManager().getPlayerManager().save(u);
+                                Player p;
+                                if((p = Bukkit.getPlayer(u.getKey())) != null) {
+                                    name = p.getName();
+                                    p.teleport(Jail.getInstance().getManager().getJailManager().getLocation("location"));
+                                    p.getInventory().addItem(Jail.getInstance().getDiamondPickaxe());
+                                    p.sendMessage(prefix + "§7Du wurdest zu §cSozialstunden §7eingesperrt. §7Du musst §5" + blocks + (blocks == 1? " Obsidian-Block" : " Obsidian-Blöcke") + " §7abbauen.");
+                                    BossBar bossBar = Bukkit.createBossBar(blocks + (blocks == 1 ? " Block" : " Blöcke"), BarColor.PURPLE, BarStyle.SEGMENTED_20);
+                                    bossBar.setProgress(1);
+                                    bossBar.addPlayer(p);
+                                    Jail.getInstance().getBossBarMap().put(p.getUniqueId(), bossBar);
+                                }
+                                s.sendMessage(prefix + "§c" + name + " §7wurde für §5" + blocks + (blocks == 1? " Obsidian-Block" : " Obsidian-Blöcke") +" §7eingesperrt.");
+                                String finalName = name;
+                                Bukkit.getOnlinePlayers().forEach(all -> {
+                                    if(all.hasPermission("jail.notify"))
+                                        all.sendMessage(prefix + "§c" + finalName + " §7wurde durch §c" + s.getName() + " §7zu §5" + blocks + (blocks == 1 ? " Block" : " Blöcke") + " §7Sozialstunden bestraft.");
+                                });
+                            } else {
+                                s.sendMessage(prefix + "§7Argument 2 muss eine §cpositive ganzzahlige Zahl §7sein.");
                             }
-                            s.sendMessage(prefix + "§c" + name + " §7wurde für §5" + blocks + (blocks == 1? " Obsidian-Block" : " Obsidian-Blöcke") +" §7eingesperrt.");
-                            String finalName = name;
-                            Bukkit.getOnlinePlayers().forEach(all -> {
-                                if(all.hasPermission("jail.notify"))
-                                    all.sendMessage(prefix + "§c" + finalName + " §7wurde durch §c" + s.getName() + " §7zu §5" + blocks + (blocks == 1 ? " Block" : " Blöcke") + " §7Sozialstunden bestraft.");
-                            });
                         } else {
-                            s.sendMessage(prefix + "§7Argument 2 muss eine §cpositive ganzzahlige Zahl §7sein.");
+                            s.sendMessage(prefix + "§7Der Spieler ist bereits eingesperrt.");
                         }
                     } else {
-                        s.sendMessage(prefix + "§7Der Spieler ist bereits eingesperrt.");
+                        s.sendMessage(prefix + "Dieser Spieler existiert nicht");
                     }
                 } else {
                     s.sendMessage(noperm("jail.jail"));
@@ -182,7 +186,12 @@ public class JailCommand implements CommandExecutor, TabCompleter {
             Player p = (Player) s;
             if(p.hasPermission("jail.set") || p.hasPermission("jail.jail") || p.hasPermission("jail.info") || p.hasPermission("jail.free")) {
                 if(args.length == 1) {
-                    return Common.getInstance().removeAutoComplete(Lists.newArrayList("setteleport", "set", "info", "free"), args[0]);
+                    List<String> list = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                    list.add("setteleport");
+                    list.add("set");
+                    list.add("info");
+                    list.add("free");
+                    return Common.getInstance().removeAutoComplete(list, args[0]);
                 } else if(args.length == 2) {
                     if(args[0].equalsIgnoreCase("info") || args[0].equalsIgnoreCase("free"))
                         return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
