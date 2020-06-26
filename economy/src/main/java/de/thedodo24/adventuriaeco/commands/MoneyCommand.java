@@ -139,7 +139,6 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             if(args[0].equalsIgnoreCase("pay")) {
                 if(s instanceof Player) {
                     Player p = (Player) s;
-                    if(!p.getLocation().getWorld().equals(Bukkit.getWorld("Gewerbegebiet"))) {
                         User pMoney = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
                         String arg = args[2];
                         if(arg.contains(","))
@@ -184,9 +183,6 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                         } else {
                             p.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
                         }
-                    } else {
-                        p.sendMessage(prefix + "§7Du darst diesen Befehl nicht im §aGewerbegebiet §7ausführen.");
-                    }
                 } else {
                     s.sendMessage("[Adventuria] Du musst ein Spieler sein.");
                 }
