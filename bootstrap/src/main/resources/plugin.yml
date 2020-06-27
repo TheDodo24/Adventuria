@@ -42,7 +42,7 @@ commands:
     aliases: [ta]
   townmayor:
     description: "Townmayor"
-    aliases: [tm]
+    aliases: [tnm]
   townresident:
     description: "Townresident"
     aliases: [tr]
@@ -56,7 +56,7 @@ commands:
     aliases: [n]
   nationchat:
     description: "Nationchat"
-    aliases: [nc]
+    aliases: [ntc]
 
 
 permissions:
