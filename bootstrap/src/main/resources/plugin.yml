@@ -57,6 +57,8 @@ commands:
   nationchat:
     description: "Nationchat"
     aliases: [ntc]
+  team:
+    description: "Teammanagement command"
 
 
 permissions:
@@ -180,10 +182,14 @@ permissions:
       towny.admin.plot.nfs: true
       towny.admin.plot.fs: true
       towny.admin.plot.bypass: true
+      towny.admin.plot.set.*: true
   towny.admin.plot.set.*:
     description: "Towny plot set commands"
     children:
       towny.admin.plot.set.perm: true
+      towny.admin.plot.set.mobs: true
+      towny.admin.plot.set.pvp: true
+      towny.admin.plot.set.public: true
   towny.admin:
     description: "Help messages and tab complete"
   towny.admin.town.spawn:
@@ -210,3 +216,33 @@ permissions:
     description: "Set perms of plot"
   towny.admin.plot.bypass:
     description: "Bypass permissions of plot"
+  towny.admin.plot.set.mobs:
+    description: "Set mobs setting of plot"
+  towny.admin.plot.set.pvp:
+    description: "Set pvp setting of plot"
+  team.admin:
+    description: "Teammanagement for Admins"
+    children:
+      team.mod: true
+  team.mod.bau:
+    description: "Teammanagement for Teams of Bau-Mod"
+    children:
+      team.mod: true
+  team.mod.community:
+    description: "Teammanagement for Teams of Community-Mod"
+    children:
+      team.mod: true
+  team.mod.justiz:
+    description: "Teammanagement for Teams of Justiz-Mod"
+    children:
+      team.mod: true
+  team.mod.medien:
+    description: "Teammanagement for Teams of Medien-Mod"
+    children:
+      team.mod: true
+  team.mod.technik:
+    description: "Teammanagement for Teams of Technik-Mod"
+    children:
+      team.mod: true
+  team.mod:
+    description: "Teammanagement for Teams"

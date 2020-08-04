@@ -32,209 +32,152 @@ public class Board {
             team.addEntry(color.toString());
             boardLines.add(new BoardLine(color, i, team));
         }
-        Team t;
+        /*Team t;
         if(scoreboard.getTeam("000") != null)
             scoreboard.getTeam("000").unregister();
         t = scoreboard.registerNewTeam("000");
-        t.setPrefix("§5");
+        t.setColor(ChatColor.DARK_PURPLE);
 
         if(scoreboard.getTeam("001") != null){
             scoreboard.getTeam("001").unregister();
         }
         t = scoreboard.registerNewTeam("001");
-        t.setPrefix("§4");
+        t.setColor(ChatColor.DARK_RED);
 
         if(scoreboard.getTeam("002") != null){
             scoreboard.getTeam("002").unregister();
         }
         t = scoreboard.registerNewTeam("002");
-        t.setPrefix("§2");
+        t.setColor(ChatColor.DARK_GREEN);
 
         if(scoreboard.getTeam("003") != null){
             scoreboard.getTeam("003").unregister();
         }
         t = scoreboard.registerNewTeam("003");
-        t.setPrefix("§b");
+        t.setColor(ChatColor.AQUA);
 
         if(scoreboard.getTeam("004") != null){
             scoreboard.getTeam("004").unregister();
         }
         t = scoreboard.registerNewTeam("004");
-        t.setPrefix(ChatColor.RED + "");
+        t.setColor(ChatColor.RED);
 
         if(scoreboard.getTeam("005") != null){
             scoreboard.getTeam("005").unregister();
         }
         t = scoreboard.registerNewTeam("005");
-        t.setPrefix(ChatColor.RED + "");
+        t.setColor(ChatColor.RED);
 
         if(scoreboard.getTeam("006") != null){
             scoreboard.getTeam("006").unregister();
         }
         t = scoreboard.registerNewTeam("006");
-        t.setPrefix("§9");
+        t.setColor(ChatColor.AQUA);
 
         if(scoreboard.getTeam("007") != null){
             scoreboard.getTeam("007").unregister();
         }
         t = scoreboard.registerNewTeam("007");
-        t.setPrefix("§9");
+        t.setColor(ChatColor.AQUA);
 
         if(scoreboard.getTeam("008") != null){
             scoreboard.getTeam("008").unregister();
         }
         t = scoreboard.registerNewTeam("008");
-        t.setPrefix("§a");
+        t.setColor(ChatColor.GREEN);
 
         if(scoreboard.getTeam("009") != null){
             scoreboard.getTeam("009").unregister();
         }
         t = scoreboard.registerNewTeam("009");
-        t.setPrefix("§a");
+        t.setColor(ChatColor.GREEN);
 
         if(scoreboard.getTeam("010") != null){
             scoreboard.getTeam("010").unregister();
         }
         t = scoreboard.registerNewTeam("010");
-        t.setPrefix("§b");
+        t.setColor(ChatColor.BLUE);
 
         if(scoreboard.getTeam("011") != null){
             scoreboard.getTeam("011").unregister();
         }
         t = scoreboard.registerNewTeam("011");
-        t.setPrefix("§b");
+        t.setColor(ChatColor.BLUE);
 
         if(scoreboard.getTeam("012") != null){
             scoreboard.getTeam("012").unregister();
         }
         t = scoreboard.registerNewTeam("012");
-        t.setPrefix("§e");
+        t.setColor(ChatColor.YELLOW);
 
         if(scoreboard.getTeam("013") != null){
             scoreboard.getTeam("013").unregister();
         }
         t = scoreboard.registerNewTeam("013");
-        t.setPrefix("§e");
+        t.setColor(ChatColor.YELLOW);
 
         if(scoreboard.getTeam("014") != null){
             scoreboard.getTeam("014").unregister();
         }
         t = scoreboard.registerNewTeam("014");
-        t.setPrefix("§3");
+        t.setColor(ChatColor.YELLOW);
 
         if(scoreboard.getTeam("015") != null){
             scoreboard.getTeam("015").unregister();
         }
         t = scoreboard.registerNewTeam("015");
-        t.setPrefix("§3");
+        t.setColor(ChatColor.DARK_AQUA);
 
         if(scoreboard.getTeam("016") != null){
             scoreboard.getTeam("016").unregister();
         }
         t = scoreboard.registerNewTeam("016");
-        t.setPrefix("§6");
+        t.setColor(ChatColor.GOLD);
 
         if(scoreboard.getTeam("017") != null){
             scoreboard.getTeam("017").unregister();
         }
         t = scoreboard.registerNewTeam("017");
-        t.setPrefix("§6");
+        t.setColor(ChatColor.GOLD);
 
         if(scoreboard.getTeam("018") != null){
             scoreboard.getTeam("018").unregister();
         }
         t = scoreboard.registerNewTeam("018");
-        t.setPrefix("§6");
+        t.setColor(ChatColor.GOLD);
 
         if(scoreboard.getTeam("019") != null){
             scoreboard.getTeam("019").unregister();
         }
         t = scoreboard.registerNewTeam("019");
-        t.setPrefix("§d");
+        t.setColor(ChatColor.LIGHT_PURPLE);
 
         if(scoreboard.getTeam("020") != null){
             scoreboard.getTeam("020").unregister();
         }
         t = scoreboard.registerNewTeam("020");
-        t.setPrefix("§d");
+        t.setColor(ChatColor.LIGHT_PURPLE);*/
     }
 
 
     public void setPrefix(Player p) {
         String group = Common.getInstance().getPerms().getPrimaryGroup(p);
-        String team = "";
-        switch(group.toLowerCase()) {
-            case "hoster":
-                team = "000";
-                break;
-            case "administrator":
-                team = "001";
-                break;
-            case "moderator":
-                team = "002";
-                break;
-            case "comm-manager":
-                team = "003";
-                break;
-            case "dev-leiter":
-                team = "004";
-                break;
-            case "developer":
-                team = "005";
-                break;
-            case "ingi-leiter":
-                team = "006";
-                break;
-            case "ingenieur":
-                team = "007";
-                break;
-            case "sup-leiter":
-                team = "008";
-                break;
-            case "supporter":
-                team = "010";
-                break;
-            case "poli-leiter":
-                team = "011";
-                break;
-            case "polizist":
-                team = "012";
-                break;
-            case "fbt-leiter":
-                team = "013";
-                break;
-            case "fbt":
-                team = "014";
-                break;
-            case "mva-leiter":
-                team = "015";
-                break;
-            case "mva":
-                team = "016";
-                break;
-            case "urgestein":
-            case "helfer":
-            case "member":
-                team = "017";
-                break;
-            case "neuling":
-                team = "018";
-                break;
-            case "gast":
-            case "default":
-                team = "019";
-                break;
-            default:
-                team = "020";
-                break;
-        }
-        scoreboard.getTeams().stream().filter(t -> t.getEntries().contains(p.getName())).forEach(t -> t.removeEntry(p.getName()));
-        scoreboard.getTeam(team).addPlayer(p);
-        String groupChat = Common.getInstance().getPerms().getPrimaryGroup(p);
-        String prefix = Common.getInstance().getChat().getGroupPrefix("", groupChat).replaceAll("(&([a-z0-9]))", "§$2");
+        int weight = Common.getInstance().getChat().getGroupInfoInteger("", group, "weight", 0);
+        String prefix = Common.getInstance().getChat().getGroupPrefix("", group).replaceAll("(&([a-z0-9]))", "§$2");
         String suffix = Common.getInstance().getChat().getGroupSuffix("", group).replaceAll("(&([a-z0-9]))", "§$2");
-        p.setPlayerListName(suffix + prefix + " §8● " + suffix + p.getName());
-        p.setDisplayName(suffix + prefix + " §8● " + suffix + p.getName());
+        int teamWeight = 100 - weight;
+        Team t;
+        ChatColor color = (Common.getInstance().getDutyPlayers().containsKey(p.getUniqueId()) ? ChatColor.getByChar(suffix.replace("§", "")) : ChatColor.GOLD);
+        if(scoreboard.getTeam(String.valueOf(teamWeight)) == null) {
+            t = scoreboard.registerNewTeam(String.valueOf(teamWeight));
+            t.setColor(color);
+            t.setPrefix((prefix.equalsIgnoreCase("Administrator") ? "Admin" : prefix) + " §8● " + suffix);
+        } else
+            t = scoreboard.getTeam(String.valueOf(teamWeight));
+        scoreboard.getTeams().stream().filter(ts -> ts.getEntries().contains(p.getName())).forEach(ts -> ts.removeEntry(p.getName()));
+        t.addEntry(p.getName());
+        p.setPlayerListName(color + prefix + " §8● " + color + p.getName());
+        p.setDisplayName(color + prefix + " §8● " + color + p.getName());
         //Bukkit.getOnlinePlayers().forEach(all -> all.setScoreboard(scoreboard));
     }
 

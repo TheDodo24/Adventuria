@@ -9,6 +9,7 @@ import de.thedodo24.commonPackage.economy.ArmorStandManager;
 import de.thedodo24.commonPackage.economy.BankLogHandler;
 import de.thedodo24.commonPackage.economy.BankManager;
 import de.thedodo24.commonPackage.jail.JailManager;
+import de.thedodo24.commonPackage.teams.LogManager;
 import de.thedodo24.commonPackage.towny.NationManager;
 import de.thedodo24.commonPackage.towny.PlotManager;
 import de.thedodo24.commonPackage.towny.TownManager;
@@ -36,6 +37,7 @@ public class ModuleManager {
     private TownManager townManager;
     private PlotManager plotManager;
     private NationManager nationManager;
+    private LogManager logManager;
     private MySQL mySQL;
 
 
@@ -57,6 +59,7 @@ public class ModuleManager {
         this.townManager = new TownManager(database);
         this.plotManager = new PlotManager(database);
         this.nationManager = new NationManager(database);
+        this.logManager = new LogManager(database);
         this.mySQL = mySQL;
     }
 

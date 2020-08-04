@@ -11,9 +11,11 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Sign;
 import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Getter
 public class User implements ArangoWritable<UUID> {
@@ -393,6 +395,35 @@ public class User implements ArangoWritable<UUID> {
         List<String> friends = (List<String>) getProperty("friends");
         friends.remove(uuid.toString());
         updateProperty("friends", friends);
+    }
+
+    // TEAM MANAGEMENT
+
+    public boolean isTeamHead() {
+        return isSetProperty("team");
+    }
+
+    public void addTeam(Teams team) {
+        List<String> teamList = Lists.newArrayList(team.toString());
+        if(isSetProperty("team")) {
+            List<String> existingTeams = (List<String>) getProperty("team");
+            teamList.addAll(existingTeams);
+        }
+        updateProperty("team", teamList);
+    }
+
+    public void removeTeam(Teams team) {
+        List<String> teamList = (List<String>) getProperty("team");
+        teamList.remove(team.toString());
+        updateProperty("team", teamList);
+    }
+
+    public List<Teams> getTeams() {
+        return ((List<String>) getProperty("team")).stream().map(Teams::valueOf).collect(Collectors.toList());
+    }
+
+    public boolean isTeam(Teams team) {
+        return ((List<String>) getProperty("team")).stream().anyMatch(s -> team.toString().equalsIgnoreCase(s));
     }
 
 }

@@ -37,8 +37,12 @@ public class TimeFormat {
     }
 
     public static int getInHours(long time) {
-        long hours = ((long) (((double) time / (1000 * 60 * 60)) * 100));
-        return (int) (((Long) hours).doubleValue() / 100);
+        return ((int) (((double) time / (1000 * 60 * 60)) * 100));
+    }
+
+    public static int getInMinutes(long time) {
+        long minutes = ((long) (((double) time / (1000 * 60)) * 100));
+        return (int) (((Long) minutes).doubleValue() / 100);
     }
 
     public static String getInDays(long time) {

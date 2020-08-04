@@ -5,6 +5,7 @@ import de.thedodo24.commonPackage.commands.*;
 import de.thedodo24.commonPackage.listener.PlayerListener;
 import de.thedodo24.commonPackage.module.ModuleSettings;
 import de.thedodo24.commonPackage.player.User;
+import de.thedodo24.commonPackage.utils.Lag;
 import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import lombok.Getter;
 import de.thedodo24.commonPackage.module.Module;
@@ -25,11 +26,11 @@ public class Common extends Module {
     private static Common instance;
     private final Map<UUID, Long> playerOnline = new HashMap<>();
     private final Map<UUID, Long> afkPlayer = new HashMap<>();
-    private List<String> teamAccounts = Lists.newArrayList("team-sl", "team-ingenieur", "team-developer", "team-supporter", "team-polizist", "team-mva", "team-mva-gewinn", "team-fbt", "team-helfer");
+    private List<String> teamAccounts = Lists.newArrayList("team-sl", "team-mod", "team-ingenieur", "team-developer", "team-supporter", "team-polizist", "team-mva", "team-mva-gewinn", "team-fbt", "team-helfer");
     private Permission perms = null;
     private Chat chat = null;
 
-
+    private HashMap<UUID, Long> dutyPlayers;
     private List<String> charList;
 
     private long nextDay;
@@ -112,6 +113,7 @@ public class Common extends Module {
                 "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", ":", ".", ";",
                 ",", "<", ">", "~", "\\", "}", "]", "[", "{", "³", "²", "^", "°", "ß", "ü", "ä", "ö", "Ä", "Ö", "Ü");
         registerListener(new PlayerListener());
+        dutyPlayers = new HashMap<>();
         new OntimeCommand();
         new CacheCommand();
         new ScoreboardCommand();
@@ -123,6 +125,7 @@ public class Common extends Module {
         setNextDay();
         setNextWeek();
 
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this.getPlugin(), new Lag(), 100L, 1L);
         Bukkit.getScheduler().scheduleAsyncRepeatingTask(this.getPlugin(), () ->
                         ManagerScoreboard.getScoreboardMap().forEach((key, val) -> {
                             Bukkit.getOnlinePlayers().forEach(all -> val.getBoard().setPrefix(all));
