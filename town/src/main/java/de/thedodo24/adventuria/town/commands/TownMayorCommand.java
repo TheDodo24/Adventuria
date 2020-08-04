@@ -1,10 +1,16 @@
 package de.thedodo24.adventuria.town.commands;
 
 import com.google.common.collect.Lists;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import de.thedodo24.adventuria.town.Towny;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.player.User;
 import de.thedodo24.commonPackage.towny.*;
+import de.thedodo24.commonPackage.utils.ClickableText;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -12,6 +18,7 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -20,7 +27,7 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
 
     public TownMayorCommand() {
         PluginCommand cmdFull = Towny.getInstance().getPlugin().getCommand("townmayor");
-        PluginCommand cmdShort = Towny.getInstance().getPlugin().getCommand("tm");
+        PluginCommand cmdShort = Towny.getInstance().getPlugin().getCommand("tnm");
         cmdFull.setExecutor(this);
         cmdFull.setTabCompleter(this);
         cmdShort.setTabCompleter(this);
@@ -53,65 +60,73 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                         sendOutpostHelpMessaage(s, label);
                     }else if(args[0].equalsIgnoreCase("claim")) {
                         Location loc = p.getLocation();
-                        Chunk chunk = loc.getChunk();
-                        AtomicBoolean near = new AtomicBoolean(false);
-                        int townSize = Towny.getInstance().getManager().getPlayerManager().getResidents(town).size();
-                        List<Plot> plots = Towny.getInstance().getManager().getPlotManager().getPlots(town);
-                        AtomicReference<Plot> original = new AtomicReference<>();
-                        if(plots.size() <= ((townSize * 16) + user.getTown().getBuyedTownSize())) {
-                            plots.forEach(c -> {
-                                if((c.getChunk().getX() - chunk.getX()) == 0) {
-                                    if(((c.getChunk().getZ() - chunk.getZ()) == -1) || ((c.getChunk().getZ() - chunk.getZ()) == 1)) {
-                                        near.set(true);
-                                        original.set(c);
+                        if(loc.getWorld().equals(Bukkit.getWorld("Freebuild"))) {
+                            Chunk chunk = loc.getChunk();
+                            AtomicBoolean near = new AtomicBoolean(false);
+                            int townSize = Towny.getInstance().getManager().getPlayerManager().getResidents(town).size();
+                            List<Plot> plots = Towny.getInstance().getManager().getPlotManager().getPlots(town);
+                            AtomicReference<Plot> original = new AtomicReference<>();
+                            if(plots.size() <= ((townSize * 16) + user.getTown().getBuyedTownSize())) {
+                                plots.forEach(c -> {
+                                    if((c.getChunk().getX() - chunk.getX()) == 0) {
+                                        if(((c.getChunk().getZ() - chunk.getZ()) == -1) || ((c.getChunk().getZ() - chunk.getZ()) == 1)) {
+                                            near.set(true);
+                                            original.set(c);
+                                        }
+                                    } else if((c.getChunk().getZ() - chunk.getZ()) == 0) {
+                                        if(((c.getChunk().getX() - chunk.getX()) == -1) || ((c.getChunk().getX() - chunk.getX()) == 1)) {
+                                            near.set(true);
+                                            original.set(c);
+                                        }
                                     }
-                                } else if((c.getChunk().getZ() - chunk.getZ()) == 0) {
-                                    if(((c.getChunk().getX() - chunk.getX()) == -1) || ((c.getChunk().getX() - chunk.getX()) == 1)) {
-                                        near.set(true);
-                                        original.set(c);
-                                    }
-                                }
-                            });
-                            if(near.get()) {
-                                if(Towny.getInstance().getManager().getPlotManager().get(String.valueOf(chunk.getChunkKey())) != null) {
-                                    p.sendMessage(prefix + "§7Dieser Chunk wurde bereits beansprucht!");
-                                    return false;
-                                }
-                                if((town.getMoney() - 600000) < 0) {
-                                    p.sendMessage(prefix + "§7Du hast nicht genügend Geld für diese Aktion auf dem Stadtkonto. §8(Kosten: 6000 A)");
-                                    return false;
-                                }
-                                Plot plot = Towny.getInstance().getManager().getPlotManager().getOrGenerate(String.valueOf(chunk.getChunkKey()), key -> {
-                                    Plot a = new Plot(key);
-                                    Map<String, Object> values = new HashMap<>();
-                                    values.put("name", town.getName());
-                                    values.put("town", town.getKey());
-                                    Map<String, Boolean> townPlayerPermissions = new HashMap<String, Boolean>() {{
-                                        put(PlotPlayer.NATION.toString(), false);
-                                        put(PlotPlayer.OUTSIDER.toString(), false);
-                                        put(PlotPlayer.RESIDENT.toString(), false);
-                                        put(PlotPlayer.FRIEND.toString(), true);
-                                    }};
-                                    values.put("permissions", new HashMap<String, Map<String, Boolean>>() {{
-                                        put(TownPermission.BUILD.toString(), townPlayerPermissions);
-                                        put(TownPermission.DESTROY.toString(), townPlayerPermissions);
-                                        put(TownPermission.ITEM.toString(), townPlayerPermissions);
-                                        put(TownPermission.SWITCH.toString(), townPlayerPermissions);
-                                    }});
-                                    if(original.get() != null && original.get().isOutpostPlot()) {
-                                        values.put("outpost", original.get().getOutpost());
-                                    }
-                                    a.setValues(values);
-                                    return a;
                                 });
-                                Towny.getInstance().getManager().getPlotManager().save(plot);
-                                town.withdrawMoney(6000 * 100);
-                                p.sendMessage(prefix + "Dieser Chunk §8[" + chunk.getX() + ";" + chunk.getZ() + "] §7wurde für die Stadt beansprucht." + (plot.isOutpostPlot() ? " (Outpost: " + plot.getOutpost() + ")" : ""));
+                                if(near.get()) {
+                                    if(Towny.getInstance().getManager().getPlotManager().get(String.valueOf(chunk.getChunkKey())) != null) {
+                                        p.sendMessage(prefix + "§7Dieser Chunk wurde bereits beansprucht!");
+                                        return false;
+                                    }
+                                    if((town.getMoney() - 600000) < 0) {
+                                        p.sendMessage(prefix + "§7Du hast nicht genügend Geld für diese Aktion auf dem Stadtkonto. §8(Kosten: 6000 A)");
+                                        return false;
+                                    }
+                                    Plot plot = Towny.getInstance().getManager().getPlotManager().getOrGenerate(String.valueOf(chunk.getChunkKey()), key -> {
+                                        Plot a = new Plot(key);
+                                        Map<String, Object> values = new HashMap<>();
+                                        values.put("name", town.getName());
+                                        values.put("town", town.getKey());
+                                        Map<String, Boolean> townPlayerPermissions = new HashMap<String, Boolean>() {{
+                                            put(PlotPlayer.NATION.toString(), false);
+                                            put(PlotPlayer.OUTSIDER.toString(), false);
+                                            put(PlotPlayer.RESIDENT.toString(), false);
+                                            put(PlotPlayer.FRIEND.toString(), true);
+                                        }};
+                                        values.put("permissions", new HashMap<String, Map<String, Boolean>>() {{
+                                            put(TownPermission.BUILD.toString(), townPlayerPermissions);
+                                            put(TownPermission.DESTROY.toString(), townPlayerPermissions);
+                                            put(TownPermission.ITEM.toString(), townPlayerPermissions);
+                                            put(TownPermission.SWITCH.toString(), townPlayerPermissions);
+                                        }});
+                                        values.put("settings", new HashMap<String, Boolean>() {{
+                                            put("pvp", false);
+                                            put("mobs", false);
+                                        }});
+                                        if(original.get() != null && original.get().isOutpostPlot()) {
+                                            values.put("outpost", original.get().getOutpost());
+                                        }
+                                        a.setValues(values);
+                                        return a;
+                                    });
+                                    Towny.getInstance().getManager().getPlotManager().save(plot);
+                                    town.withdrawMoney(6000 * 100);
+                                    p.sendMessage(prefix + "Dieser Chunk §8[" + chunk.getX() + ";" + chunk.getZ() + "] §7wurde für die Stadt beansprucht." + (plot.isOutpostPlot() ? " (Outpost: " + plot.getOutpost() + ")" : ""));
+                                } else {
+                                    p.sendMessage(prefix + "§7Der Chunk grenzt an keinem Stadtchunk.");
+                                }
                             } else {
-                                p.sendMessage(prefix + "§7Der Chunk grenzt an keinem Stadtchunk.");
+                                p.sendMessage(prefix + "§7Du hast die maximale Stadtgröße erreicht.");
                             }
                         } else {
-                            p.sendMessage(prefix + "§7Du hast die maximale Stadtgröße erreicht.");
+                            p.sendMessage(prefix + "§7Du kannst diesen Befehl nur im §6Freebuild §7ausführen.");
                         }
                     } else if(args[0].equalsIgnoreCase("unclaim")) {
                         Location loc = p.getLocation();
@@ -136,6 +151,14 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                             }
                         } else {
                             p.sendMessage(prefix + "§7Dieser Chunk ist nicht geclaimt.");
+                        }
+                    } else if(args[0].equalsIgnoreCase("border")) {
+                        if(Towny.getInstance().getBorderList().contains(p.getUniqueId())) {
+                            Towny.getInstance().getBorderList().remove(p.getUniqueId());
+                            p.sendMessage(prefix + "§7Du hast die Grenzen §cdeaktiviert§7.");
+                        } else {
+                            Towny.getInstance().getBorderList().add(p.getUniqueId());
+                            p.sendMessage(prefix + "§7Du hast die Grenzen §aaktiviert§7.");
                         }
                     } else {
                         sendHelpMessage(s, label);
@@ -166,10 +189,24 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                                     Towny.getInstance().getTownInventations().put(invite.getUniqueId(), town.getKey());
                                     Towny.getInstance().getTownInventationsTime().put(invite.getUniqueId(), System.currentTimeMillis() + 60000);
                                     p.sendMessage(prefix + "§7Du hast §6" + invite.getName() + " §7in deine Stadt eingeladen.");
-                                    invite.sendMessage(prefix + "§7Du wurdest von §6" + p.getName() + " §7in die Stadt §6" + town.getName() + " §7eingeladen.\n" +
-                                            "§7» §a/town invite accept §7|| Um anzunehmen\n" +
-                                            "§7» §c/town invite deny §7|| Um abzulehnen\n" +
-                                            "§7» Die Einladung verfällt in §660 Sekunden§7.");
+                                    TextComponent accept = new ClickableText("§7» §a/town invite accept §7|| Um anzunehmen")
+                                            .setChatColor(ChatColor.GREEN)
+                                            .setClickEventAction(ClickEvent.Action.RUN_COMMAND)
+                                            .setClickMessage("/town invite accept")
+                                            .setHoverEventAction(HoverEvent.Action.SHOW_TEXT)
+                                            .setHoverMessage("Klicke um anzunehmen")
+                                            .build();
+                                    TextComponent deny = new ClickableText("§7» §c/town invite deny §7|| Um abzulehnen")
+                                            .setChatColor(ChatColor.RED)
+                                            .setClickEventAction(ClickEvent.Action.RUN_COMMAND)
+                                            .setClickMessage("/town invite deny")
+                                            .setHoverEventAction(HoverEvent.Action.SHOW_TEXT)
+                                            .setHoverMessage("Klicke um abzulehnen")
+                                            .build();
+                                    invite.sendMessage(prefix + "§7Du wurdest von §6" + p.getName() + " §7in die Stadt §6" + town.getName() + " §7eingeladen.");
+                                    invite.spigot().sendMessage(accept);
+                                    invite.spigot().sendMessage(deny);
+                                    invite.sendMessage("§7» Die Einladung verfällt in §660 Sekunden§7.");
                                 } else {
                                     p.sendMessage(prefix + "§7Der Spieler §6" + args[1] + " §7ist nicht online.");
                                 }
@@ -296,46 +333,50 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                                 }
                             } else if(args[0].equalsIgnoreCase("outpost")) {
                                 if(args[1].equalsIgnoreCase("create")) {
-                                    String name = args[2];
-                                    if(town.checkOutpost(name)) {
-                                        p.sendMessage(prefix + "Deine Stadt besitzt bereits einen Outpost mit den Namen §6" + name + "§7.");
-                                        return true;
+                                    if(p.getLocation().getWorld().equals(Bukkit.getWorld("Freebuild"))) {
+                                        String name = args[2];
+                                        if(town.checkOutpost(name)) {
+                                            p.sendMessage(prefix + "Deine Stadt besitzt bereits einen Outpost mit den Namen §6" + name + "§7.");
+                                            return true;
+                                        }
+                                        long chunkKey = p.getLocation().getChunk().getChunkKey();
+                                        if(Towny.getInstance().getManager().getPlotManager().get(String.valueOf(chunkKey)) != null) {
+                                            p.sendMessage(prefix + "§7Dieses Plot ist bereits besetzt.");
+                                            return true;
+                                        }
+                                        if((town.getMoney() - 1500000) < 0) {
+                                            p.sendMessage(prefix + "Du hast nicht genug Geld um einen §6Outpost §7zu gründen.");
+                                            return true;
+                                        }
+                                        town.addOutpost(name, p.getLocation());
+                                        Plot plot = Towny.getInstance().getManager().getPlotManager().getOrGenerate(String.valueOf(chunkKey), key -> {
+                                            Plot a = new Plot(key);
+                                            Map<String, Object> values = new HashMap<>();
+                                            values.put("name", town.getName());
+                                            values.put("town", town.getKey());
+                                            Map<String, Boolean> townPlayerPermissions = new HashMap<String, Boolean>() {{
+                                                put(PlotPlayer.NATION.toString(), false);
+                                                put(PlotPlayer.OUTSIDER.toString(), false);
+                                                put(PlotPlayer.RESIDENT.toString(), false);
+                                                put(PlotPlayer.FRIEND.toString(), true);
+                                            }};
+                                            values.put("permissions", new HashMap<String, Map<String, Boolean>>() {{
+                                                put(TownPermission.BUILD.toString(), townPlayerPermissions);
+                                                put(TownPermission.DESTROY.toString(), townPlayerPermissions);
+                                                put(TownPermission.ITEM.toString(), townPlayerPermissions);
+                                                put(TownPermission.SWITCH.toString(), townPlayerPermissions);
+                                            }});
+                                            values.put("outpost", name);
+                                            a.setValues(values);
+                                            return a;
+                                        });
+                                        Towny.getInstance().getManager().getPlotManager().save(plot);
+                                        town.withdrawMoney(1500000);
+                                        Towny.getInstance().getManager().getPlayerManager().getResidents(town).stream().filter(u -> Bukkit.getPlayer(u.getKey()) != null).forEach(u ->
+                                                Bukkit.getPlayer(u.getKey()).sendMessage("§7§l| §6" + town.getName() + " §7» Es wurde ein neuer Outpost §8(" + name + ") §7erstellt."));
+                                    } else {
+                                        p.sendMessage(prefix + "§7Du kannst diesen Befehl nur im §6Freebuild §7ausführen.");
                                     }
-                                    long chunkKey = p.getLocation().getChunk().getChunkKey();
-                                    if(Towny.getInstance().getManager().getPlotManager().get(String.valueOf(chunkKey)) != null) {
-                                        p.sendMessage(prefix + "§7Dieses Plot ist bereits besetzt.");
-                                        return true;
-                                    }
-                                    if((town.getMoney() - 1500000) < 0) {
-                                        p.sendMessage(prefix + "Du hast nicht genug Geld um einen §6Outpost §7zu gründen.");
-                                        return true;
-                                    }
-                                    town.addOutpost(name, p.getLocation());
-                                    Plot plot = Towny.getInstance().getManager().getPlotManager().getOrGenerate(String.valueOf(chunkKey), key -> {
-                                        Plot a = new Plot(key);
-                                        Map<String, Object> values = new HashMap<>();
-                                        values.put("name", town.getName());
-                                        values.put("town", town.getKey());
-                                        Map<String, Boolean> townPlayerPermissions = new HashMap<String, Boolean>() {{
-                                            put(PlotPlayer.NATION.toString(), false);
-                                            put(PlotPlayer.OUTSIDER.toString(), false);
-                                            put(PlotPlayer.RESIDENT.toString(), false);
-                                            put(PlotPlayer.FRIEND.toString(), true);
-                                        }};
-                                        values.put("permissions", new HashMap<String, Map<String, Boolean>>() {{
-                                            put(TownPermission.BUILD.toString(), townPlayerPermissions);
-                                            put(TownPermission.DESTROY.toString(), townPlayerPermissions);
-                                            put(TownPermission.ITEM.toString(), townPlayerPermissions);
-                                            put(TownPermission.SWITCH.toString(), townPlayerPermissions);
-                                        }});
-                                        values.put("outpost", name);
-                                        a.setValues(values);
-                                        return a;
-                                    });
-                                    Towny.getInstance().getManager().getPlotManager().save(plot);
-                                    town.withdrawMoney(1500000);
-                                    Towny.getInstance().getManager().getPlayerManager().getResidents(town).stream().filter(u -> Bukkit.getPlayer(u.getKey()) != null).forEach(u ->
-                                            Bukkit.getPlayer(u.getKey()).sendMessage("§7§l| §6" + town.getName() + " §7» Es wurde ein neuer Outpost §8(" + name + ") §7erstellt."));
                                 } else {
                                     sendOutpostHelpMessaage(s, label);
                                 }
@@ -445,7 +486,7 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
             if(u.checkTownMember() && u.getTownRank().equals(TownRank.MAYOR)) {
                 Town town = u.getTown();
                 if(args.length == 1) {
-                    return Common.getInstance().removeAutoComplete(Lists.newArrayList("set", "invite", "kick", "claim", "unclaim", "buy", "outpost"), args[0]);
+                    return Common.getInstance().removeAutoComplete(Lists.newArrayList("set", "invite", "kick", "claim", "unclaim", "buy", "outpost", "border"), args[0]);
                 } else if(args.length == 2) {
                     switch (args[0].toLowerCase()) {
                         case "invite":
@@ -454,7 +495,7 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                         case "buy":
                             return Common.getInstance().removeAutoComplete(Lists.newArrayList("townsize"), args[1]);
                         case "set":
-                            return Common.getInstance().removeAutoComplete(Lists.newArrayList("mayor", "blackboard", "rank", "spawn", "taxes", "perm"), args[1]);
+                            return Common.getInstance().removeAutoComplete(Lists.newArrayList("mayor", "blackboard", "rank", "spawn", "taxes", "perm", "public"), args[1]);
                         case "outpost":
                             return Common.getInstance().removeAutoComplete(Lists.newArrayList("create", "rename", "set"), args[1]);
                     }
@@ -502,7 +543,8 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                         prefix + "§6/" + label + " claim §7| Claimt den Chunk in dem du stehst für die Stadt\n" +
                         prefix + "§6/" + label + " unclaim §7| Unclaimt den Chunk in dem du stehst\n" +
                         prefix + "§6/" + label + " buy townsize [Anzahl] §7| Erhöhere deine Stadtgröße\n" +
-                        prefix + "§6/" + label + " outpost §7| Listet die Möglichkeiten für Outposts auf");
+                        prefix + "§6/" + label + " outpost §7| Listet die Möglichkeiten für Outposts auf\n" +
+                        prefix + "§6/" + label + " border §7| Schaltet die Grenzen der Stadt ein/aus");
     }
 
     private void sendSetHelpMessage(CommandSender s, String label) {
@@ -512,7 +554,9 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                         prefix + "§e/" + label + " set §6spawn §7| Setzt den Spawn der Stadt\n" +
                         prefix + "§e/" + label + " set §6taxes [Steuern] §7| Setzt die Stadtsteuern\n" +
                         prefix + "§e/" + label + " set §6perm [Permission] [Spielergruppe] [true/false] §7| Setzt die Permission für die Spielergruppe\n" +
-                        prefix + "§e/" + label + " set §6public [true/false] §7| Setzt den Öffentlichkeitsstatus.");
+                        prefix + "§e/" + label + " set §6public [true/false] §7| Setzt den Öffentlichkeitsstatus.\n" +
+                        prefix + "§e/" + label + " set §6pvp [true/false] §7| Erlaubt/Verbietet PvP in der Stadt\n" +
+                        prefix + "§e/" + label + " set §6mobs [true/false] §7| Erlaubt/Verbietet Mobspawn in der Stadt");
     }
 
     private void sendOutpostHelpMessaage(CommandSender s, String label) {

@@ -119,7 +119,8 @@ public class TownCommand implements CommandExecutor, TabCompleter {
             } else if(args[0].equalsIgnoreCase("list")) {
                 List<Town> towns = Towny.getInstance().getManager().getTownManager().getTowns();
                 s.sendMessage("§7|----------| §6Städte §7|----------|");
-                towns.forEach(town -> s.sendMessage("§7» §6" + town.getName() + " §7("+town.getRank()+") §7|| " + Towny.getInstance().getManager().getPlayerManager().getResidents(town).size() + " Einwohner || " + town.getOutposts().size() + " Outposts"));
+                towns.stream().sorted(Comparator.comparingInt(t -> Towny.getInstance().getManager().getPlayerManager().getResidents((Town) t).size()).reversed())
+                        .forEach(town -> s.sendMessage("§7» §6" + town.getName() + " §7("+town.getRank()+") §7|| " + Towny.getInstance().getManager().getPlayerManager().getResidents(town).size() + " Einwohner || " + town.getOutposts().size() + " Outposts"));
             } else if(args[0].equalsIgnoreCase("online")) {
                 if(s instanceof Player) {
                     Player p = (Player) s;
@@ -139,7 +140,7 @@ public class TownCommand implements CommandExecutor, TabCompleter {
                 if(s instanceof Player) {
                     Player p = (Player) s;
                     User user = Towny.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                    if(user.checkTownMember() || p.hasPermission("towny.admin.town.spawn")) {
+                    if(user.checkTownMember()) {
                         Town t = user.getTown();
                         p.teleport(t.getSpawn(), PlayerTeleportEvent.TeleportCause.PLUGIN);
                         p.sendMessage(prefix + "§7Du wurdest zum Stadtspawn teleportiert.");
@@ -248,7 +249,7 @@ public class TownCommand implements CommandExecutor, TabCompleter {
                     Player p = (Player) s;
                     Town t = Towny.getInstance().getManager().getTownManager().get(args[1].toLowerCase());
                     if (t != null) {
-                        if (t.isPublic()) {
+                        if (t.isPublic() || p.hasPermission("towny.admin.town.spawn")) {
                             p.teleport(t.getSpawn(), PlayerTeleportEvent.TeleportCause.PLUGIN);
                             p.sendMessage(prefix + "§7Du wurdest zum Stadtspawn von §6" + t.getName() + " §7teleportiert.");
                         } else {

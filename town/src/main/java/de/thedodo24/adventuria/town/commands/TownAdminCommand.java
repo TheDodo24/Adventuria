@@ -1,6 +1,7 @@
 package de.thedodo24.adventuria.town.commands;
 
 import com.google.common.collect.Lists;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import de.thedodo24.adventuria.town.Towny;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.WritableGenerator;
@@ -83,68 +84,76 @@ public class TownAdminCommand implements CommandExecutor, TabCompleter {
                     case "new":
                         if(s instanceof Player) {
                             Player p = (Player) s;
-                            if(p.hasPermission("towny.admin.town.create")) {
-                                String name = args[2];
-                                Town testTown = Towny.getInstance().getManager().getTownManager().get(name.toLowerCase());
-                                if(testTown == null) {
-                                    String mayorString = args[3];
-                                    Player mayor;
-                                    if((mayor = Bukkit.getPlayer(mayorString)) != null) {
-                                        if(Common.getInstance().getCharList().stream().noneMatch(name::contains)) {
-                                            Town newTown = Towny.getInstance().getManager().getTownManager().getOrGenerate(name.toLowerCase(), key -> {
-                                                Town t = new Town(key);
-                                                Map<String, Object> values = new HashMap<>();
-                                                values.put("name", name);
-                                                values.put("blackboard", "/townmayor set blackboard [Text]");
-                                                values.put("created", System.currentTimeMillis());
-                                                values.put("public", false);
-                                                values.put("balance", (long) 0);
-                                                values.put("taxes", 100L);
-                                                values.put("spawn", p.getLocation().serialize());
-                                                values.put("townsize", 0L);
-                                                values.put("outposts", new HashMap<String, Map<String, Object>>());
-                                                t.setValues(values);
-                                                return t;
-                                            });
-                                            Plot plot = Towny.getInstance().getManager().getPlotManager().getOrGenerate(String.valueOf(p.getLocation().getChunk().getChunkKey()), key -> {
-                                                Plot a = new Plot(key);
-                                                Map<String, Object> values = new HashMap<>();
-                                                values.put("name", newTown.getName());
-                                                values.put("town", newTown.getKey());
-                                                Map<String, Boolean> townPlayerPermissions = new HashMap<String, Boolean>() {{
-                                                    put(PlotPlayer.NATION.toString(), false);
-                                                    put(PlotPlayer.OUTSIDER.toString(), false);
-                                                    put(PlotPlayer.RESIDENT.toString(), false);
-                                                    put(PlotPlayer.FRIEND.toString(), false);
-                                                }};
-                                                values.put("permissions", new HashMap<String, Map<String, Boolean>>() {{
-                                                    put(TownPermission.BUILD.toString(), townPlayerPermissions);
-                                                    put(TownPermission.DESTROY.toString(), townPlayerPermissions);
-                                                    put(TownPermission.ITEM.toString(), townPlayerPermissions);
-                                                    put(TownPermission.SWITCH.toString(), townPlayerPermissions);
-                                                }});
-                                                a.setValues(values);
-                                                return a;
-                                            });
-                                            Towny.getInstance().getManager().getPlotManager().save(plot);
-                                            Towny.getInstance().getManager().getTownManager().save(newTown);
-                                            User userMayor = Towny.getInstance().getManager().getPlayerManager().get(mayor.getUniqueId());
-                                            userMayor.setTown(newTown.getKey(), TownRank.MAYOR);
-                                            Towny.getInstance().getManager().getPlayerManager().save(userMayor);
-                                            p.sendMessage(prefix + "§7Die Stadt §6" + name + " §7wurde erstellt.");
-                                            Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§6" + mayor.getName() + " §7hat die Stadt §6" + name + " §7gegründet."));
-                                            Bukkit.getConsoleSender().sendMessage("Die Stadt " + name + " wurde gegründet.");
+                            if(p.getLocation().getWorld().equals(Bukkit.getWorld("Freebuild"))) {
+                                if(p.hasPermission("towny.admin.town.create")) {
+                                    String name = args[2];
+                                    Town testTown = Towny.getInstance().getManager().getTownManager().get(name.toLowerCase());
+                                    if(testTown == null) {
+                                        String mayorString = args[3];
+                                        Player mayor;
+                                        if((mayor = Bukkit.getPlayer(mayorString)) != null) {
+                                            if(Common.getInstance().getCharList().stream().noneMatch(name::contains)) {
+                                                Town newTown = Towny.getInstance().getManager().getTownManager().getOrGenerate(name.toLowerCase(), key -> {
+                                                    Town t = new Town(key);
+                                                    Map<String, Object> values = new HashMap<>();
+                                                    values.put("name", name);
+                                                    values.put("blackboard", "/townmayor set blackboard [Text]");
+                                                    values.put("created", System.currentTimeMillis());
+                                                    values.put("public", false);
+                                                    values.put("balance", (long) 0);
+                                                    values.put("taxes", 100L);
+                                                    values.put("spawn", p.getLocation().serialize());
+                                                    values.put("townsize", 0L);
+                                                    values.put("outposts", new HashMap<String, Map<String, Object>>());
+                                                    values.put("settings", new HashMap<String, Boolean>() {{
+                                                        put("pvp", false);
+                                                        put("mobs", false);
+                                                    }});
+                                                    t.setValues(values);
+                                                    return t;
+                                                });
+                                                Plot plot = Towny.getInstance().getManager().getPlotManager().getOrGenerate(String.valueOf(p.getLocation().getChunk().getChunkKey()), key -> {
+                                                    Plot a = new Plot(key);
+                                                    Map<String, Object> values = new HashMap<>();
+                                                    values.put("name", newTown.getName());
+                                                    values.put("town", newTown.getKey());
+                                                    Map<String, Boolean> townPlayerPermissions = new HashMap<String, Boolean>() {{
+                                                        put(PlotPlayer.NATION.toString(), false);
+                                                        put(PlotPlayer.OUTSIDER.toString(), false);
+                                                        put(PlotPlayer.RESIDENT.toString(), false);
+                                                        put(PlotPlayer.FRIEND.toString(), false);
+                                                    }};
+                                                    values.put("permissions", new HashMap<String, Map<String, Boolean>>() {{
+                                                        put(TownPermission.BUILD.toString(), townPlayerPermissions);
+                                                        put(TownPermission.DESTROY.toString(), townPlayerPermissions);
+                                                        put(TownPermission.ITEM.toString(), townPlayerPermissions);
+                                                        put(TownPermission.SWITCH.toString(), townPlayerPermissions);
+                                                    }});
+                                                    a.setValues(values);
+                                                    return a;
+                                                });
+                                                Towny.getInstance().getManager().getPlotManager().save(plot);
+                                                Towny.getInstance().getManager().getTownManager().save(newTown);
+                                                User userMayor = Towny.getInstance().getManager().getPlayerManager().get(mayor.getUniqueId());
+                                                userMayor.setTown(newTown.getKey(), TownRank.MAYOR);
+                                                Towny.getInstance().getManager().getPlayerManager().save(userMayor);
+                                                p.sendMessage(prefix + "§7Die Stadt §6" + name + " §7wurde erstellt.");
+                                                Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§6" + mayor.getName() + " §7hat die Stadt §6" + name + " §7gegründet."));
+                                                Bukkit.getConsoleSender().sendMessage("Die Stadt " + name + " wurde gegründet.");
+                                            } else {
+                                                p.sendMessage(prefix + "§7Der Name enthält verbotene Charakter.");
+                                            }
                                         } else {
-                                            p.sendMessage(prefix + "§7Der Name enthält verbotene Charakter.");
+                                            p.sendMessage(prefix + "§7Der Bürgermeister muss online sein.");
                                         }
                                     } else {
-                                        p.sendMessage(prefix + "§7Der Bürgermeister muss online sein.");
+                                        p.sendMessage(prefix + "§7Eine Stadt mit dem Namen §6" + name + " §7existiert bereits.");
                                     }
                                 } else {
-                                    p.sendMessage(prefix + "§7Eine Stadt mit dem Namen §6" + name + " §7existiert bereits.");
+                                    p.sendMessage(noPerm("towny.admin.town.create"));
                                 }
                             } else {
-                                p.sendMessage(noPerm("towny.admin.town.create"));
+                                p.sendMessage(prefix + "§7Du kannst diesen Befehl nur im §6Freebuild §7ausführen.");
                             }
                         } else {
                             s.sendMessage(prefix + "§7Du musst ein Spieler sein.");

@@ -7,9 +7,13 @@ import de.thedodo24.adventuria.town.listener.WorldEvents;
 import de.thedodo24.commonPackage.module.Module;
 import de.thedodo24.commonPackage.module.ModuleManager;
 import de.thedodo24.commonPackage.module.ModuleSettings;
+import de.thedodo24.commonPackage.player.User;
+import de.thedodo24.commonPackage.towny.Plot;
+import de.thedodo24.commonPackage.towny.Town;
 import de.thedodo24.commonPackage.towny.TownRank;
 import lombok.Getter;
-import org.bukkit.Bukkit;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -34,12 +38,15 @@ public class Towny extends Module {
 
     private Map<UUID, String> townInventations;
     private Map<UUID, Long> townInventationsTime;
+    private Map<UUID, Long> cooldown;
     private List<String> charList;
     private int scheduler;
 
     private long residentTax;
     private long townTax;
     private SimpleDateFormat dateFormat;
+
+    private List<UUID> borderList = Lists.newArrayList();
 
     private String prefix = "§7§l| §6Städte §7» ";
     private String formatValue(double v) { return NumberFormat.getCurrencyInstance(Locale.GERMANY).format(v).split(" ")[0] + " A"; }
@@ -49,6 +56,7 @@ public class Towny extends Module {
         getPlugin().getLogger().log(Level.INFO, "Enable Towny module");
         townInventations = new HashMap<>();
         townInventationsTime = new HashMap<>();
+        cooldown = new HashMap<>();
         charList = Lists.newArrayList("!", "\"", "§", "$", "%", "&", "/",
                 "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", "_", "-", ":", ".", ";",
                 ",", "<", ">", "~", "\\", "}", "]", "[", "{", "³", "²", "^", "°", "ß", "ü", "ä", "ö", "Ä", "Ö", "Ü");
@@ -93,7 +101,57 @@ public class Towny extends Module {
     }
 
     private void startScheduler() {
+        List<UUID> toremove = Lists.newArrayList();
         scheduler = Bukkit.getScheduler().scheduleSyncRepeatingTask(getPlugin(), () -> {
+            if(getBorderList().size() > 0) {
+                getBorderList().forEach(uuid -> {
+                    Player u = Bukkit.getPlayer(uuid);
+                    if(u != null) {
+                        User user = getManager().getPlayerManager().get(uuid);
+                        Town t = user.getTown();
+                        List<Plot> plots = getManager().getPlotManager().getPlots(t);
+                        if(plots.size() > 0) {
+                            plots.forEach(plot -> {
+                                Chunk plotChunk = plot.getChunk();
+                                Chunk chunk1 = plotChunk.getWorld().getChunkAt(plotChunk.getX() + 1, plotChunk.getZ());
+                                Chunk chunk2 = plotChunk.getWorld().getChunkAt(plotChunk.getX() - 1, plotChunk.getZ());
+                                Chunk chunk3 = plotChunk.getWorld().getChunkAt(plotChunk.getX(), plotChunk.getZ() + 1);
+                                Chunk chunk4 = plotChunk.getWorld().getChunkAt(plotChunk.getX(), plotChunk.getZ() - 1);
+                                List<Location> particleLocations = Lists.newArrayList();
+                                Location l1 = plotChunk.getBlock(15, 0,0).getLocation();
+                                Location l2 = plotChunk.getBlock(0, 0,0).getLocation();
+                                Location l3 = plotChunk.getBlock(0, 0,15).getLocation();
+                                if(getManager().getPlotManager().get(chunk1.getChunkKey() + "") == null) {
+                                    for(int i2 = plotChunk.getWorld().getHighestBlockYAt(l1); i2 < 128; i2++) {
+                                        particleLocations.add(plotChunk.getBlock(15, i2, 0).getLocation());
+                                    }
+                                    for(int i2 = plotChunk.getWorld().getHighestBlockYAt(l2); i2 < 128; i2++) {
+                                        particleLocations.add(plotChunk.getBlock(0, i2, 0).getLocation());
+                                    }
+                                }
+                                if(getManager().getPlotManager().get(chunk2.getChunkKey() + "") == null) {
+                                    for(int i2 = plotChunk.getWorld().getHighestBlockYAt(l2); i2 < 128; i2++) {
+                                        particleLocations.add(plotChunk.getBlock(0, i2, 0).getLocation());
+                                    }
+                                    for(int i2 = plotChunk.getWorld().getHighestBlockYAt(l3); i2 < 128; i2++) {
+                                        particleLocations.add(plotChunk.getBlock(0, i2, 15).getLocation());
+                                    }
+                                }
+                                particleLocations.forEach(loc -> u.sendBlockChange(loc, Material.RED_STAINED_GLASS_PANE, (byte) 1));
+                            });
+                        } else {
+                            u.sendMessage(prefix + "§7Deine Stadt hat keine Plots. Die Grenzen werden §cdeaktiviert§7.");
+                            toremove.add(uuid);
+                        }
+                    } else {
+                        toremove.add(uuid);
+                    }
+                });
+            }
+            if(toremove.size() > 0) {
+                toremove.forEach(uuid -> borderList.remove(uuid));
+                toremove.clear();
+            }
             if(getTownInventationsTime().size() > 0) {
                 List<UUID> toRemove = Lists.newArrayList();
                 getTownInventationsTime().forEach((uuid, l) -> {

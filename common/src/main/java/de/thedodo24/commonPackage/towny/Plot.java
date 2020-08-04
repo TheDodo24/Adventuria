@@ -176,4 +176,18 @@ public class Plot implements ArangoWritable<String> {
         });
         updateProperty("permissions", newPermissionMap);
     }
+
+    public Map<String, Boolean> getSettings() {
+        return (Map<String, Boolean>) getProperty("settings");
+    }
+
+    public boolean getSetting(String setting) {
+        return ((Map<String, Boolean>) getProperty("settings")).get(setting);
+    }
+
+    public void setSetting(String setting, boolean bool) {
+        Map<String, Boolean> settingsMap = getSettings();
+        settingsMap.replace(setting, bool);
+        updateProperty("settings", settingsMap);
+    }
 }
