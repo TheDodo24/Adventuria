@@ -44,7 +44,7 @@ public class ScoreboardCommand implements CommandExecutor, TabCompleter {
                         p.sendMessage(prefix + "§7Du hast dein §aScoreboard §7eingeblendet.");
                     }
                 } else if(args[0].equalsIgnoreCase("modules")) {
-                    p.sendMessage(prefix + "§aonline§7, §amoney§7, §aontime§7, §abank§7, §acorp");
+                    p.sendMessage(prefix + Arrays.stream(CustomScoreboardType.values()).map(Enum::toString).map(String::toLowerCase).collect(Collectors.joining("§7, §a")));
                 } else {
                     p.sendMessage(prefix + "§a/sboard set [Zeile] [Modulname] <[Kontoname/Ontime]>\n" +
                             prefix + "§a/sboard off [Zeile]\n" +
@@ -108,7 +108,8 @@ public class ScoreboardCommand implements CommandExecutor, TabCompleter {
                             p.sendMessage(prefix + "§7Gebe bitte einen gültigen Modulnamen an.");
                             return false;
                         }
-                        if(type.equals(CustomScoreboardType.MONEY) || type.equals(CustomScoreboardType.ONLINE) || type.equals(CustomScoreboardType.CORP)) {
+                        if(type.equals(CustomScoreboardType.MONEY) || type.equals(CustomScoreboardType.ONLINE) || type.equals(CustomScoreboardType.CORP) || type.equals(CustomScoreboardType.TPS)
+                        || type.equals(CustomScoreboardType.PING) || type.equals(CustomScoreboardType.TOWNY)) {
                             User user = Common.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
                             List<Integer> sortedList = user.getCustomScoreboard().keySet().stream().map(Integer::parseInt).sorted().collect(Collectors.toList());
                             Collections.reverse(sortedList);
@@ -334,8 +335,7 @@ public class ScoreboardCommand implements CommandExecutor, TabCompleter {
                     return Common.getInstance().removeAutoComplete(Lists.newArrayList("0", "1", "2", "3"), args[1]);
             } else if(args.length == 3) {
                 if(args[0].equalsIgnoreCase("set")) {
-                    List<String> returnList = Lists.newArrayList("online", "money", "ontime", "bank", "corp");
-                    return Common.getInstance().removeAutoComplete(returnList, args[2]);
+                    return Common.getInstance().removeAutoComplete(Arrays.stream(CustomScoreboardType.values()).map(Enum::toString).map(String::toLowerCase).collect(Collectors.toList()), args[2]);
                 }
             } else if(args.length == 4) {
                 if(args[0].equalsIgnoreCase("set")) {

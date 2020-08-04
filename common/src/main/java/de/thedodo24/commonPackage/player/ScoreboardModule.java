@@ -4,6 +4,7 @@ import com.arangodb.entity.BaseDocument;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.economy.BankAccount;
+import de.thedodo24.commonPackage.utils.Lag;
 import de.thedodo24.commonPackage.utils.TimeFormat;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -34,6 +35,12 @@ public class ScoreboardModule {
                 return "§aOnline";
             case ONTIME:
                 return "§5Ontime";
+            case TPS:
+                return "§4TPS";
+            case PING:
+                return "§cPing";
+            case TOWNY:
+                return "§6Stadt";
             default:
                 return "";
         }
@@ -71,6 +78,16 @@ public class ScoreboardModule {
                 Map<String, Long> corp = Common.getInstance().getManager().getMySQL().getCorp(user.getName());
                 if(corp.size() > 0) {
                     return formatValue(corp.get(corp.keySet().stream().findFirst().get()).doubleValue() / 100);
+                } else {
+                    return "0 A";
+                }
+            case TPS:
+                return String.valueOf(((Long) (long) (Lag.getTPS() * 100)).doubleValue() / 100);
+            case PING:
+                return Bukkit.getPlayer(user.getKey()).spigot().getPing() + " ms";
+            case TOWNY:
+                if(user.checkTownMember()) {
+                    return formatValue(((Long) user.getTown().getMoney()).doubleValue() / 100);
                 } else {
                     return "0 A";
                 }

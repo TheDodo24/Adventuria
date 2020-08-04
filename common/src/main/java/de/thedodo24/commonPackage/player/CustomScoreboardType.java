@@ -6,6 +6,9 @@ public enum CustomScoreboardType {
     MONEY,
     ONTIME,
     BANK,
-    CORP;
+    CORP,
+    TPS,
+    PING,
+    TOWNY;
 
 }
