@@ -27,7 +27,7 @@ public class User implements ArangoWritable<UUID> {
 
     public User(UUID key) {
         this.key = key;
-        values.put("moneyBalance", (long) 0);
+        values.put("moneyBalance", (long) 25000);
         values.put("ontime", new HashMap<String, Object>() {{
             put("totalOntime", (long) 0);
             put("weekOntime", (long) 0);
