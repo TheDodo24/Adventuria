@@ -10,6 +10,7 @@ import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import lombok.Getter;
 import de.thedodo24.commonPackage.module.Module;
 import de.thedodo24.commonPackage.module.ModuleManager;
+import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -35,6 +36,8 @@ public class Common extends Module {
 
     private long nextDay;
     private long nextWeek;
+
+    private LuckPerms luckPerms;
 
     public Common(ModuleSettings settings, ModuleManager manager, JavaPlugin plugin) {
         super(settings, manager, plugin);
@@ -108,6 +111,10 @@ public class Common extends Module {
             chat = chatrsp.getProvider();
         } catch (Exception e) {
             System.err.println("[Adventuria] Vault is depended to load this plugin");
+        }
+        RegisteredServiceProvider<LuckPerms> luckpermsRsp = getPlugin().getServer().getServicesManager().getRegistration(LuckPerms.class);
+        if(luckpermsRsp != null) {
+            luckPerms = luckpermsRsp.getProvider();
         }
         charList = Lists.newArrayList("!", "\"", "§", "$", "%", "&", "/",
                 "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", ":", ".", ";",

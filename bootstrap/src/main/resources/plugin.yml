@@ -3,7 +3,7 @@ version: "1.0"
 author: "TheDodo24"
 main: "de.thedodo24.Adventuria.Adventuria"
 api-version: "1.15"
-softdepend: [Vault, ProtocolLib]
+softdepend: [Vault, ProtocolLib, LuckPerms]
 loadbefore: [Essentials, Towny, WorldEdit]
 
 commands:
