@@ -52,12 +52,12 @@ public class TeamLog implements ArangoWritable<UUID> {
 
     @Override
     public void read(BaseDocument document) {
-        document.setProperties(values);
+        values = document.getProperties();
     }
 
     @Override
     public void save(BaseDocument document) {
-        values = document.getProperties();
+        document.setProperties(values);
     }
 
     public void addEntry(long start, long end) {

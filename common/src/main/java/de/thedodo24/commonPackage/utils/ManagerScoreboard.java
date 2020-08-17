@@ -46,7 +46,10 @@ public class ManagerScoreboard {
         User user = Common.getInstance().getManager().getPlayerManager().get(player.getUniqueId());
         Map<String, Map<String, String>> scoreboard = user.getCustomScoreboard();
         ScoreboardModule module = new ScoreboardModule();
-        board.setValue(1, module.getPlaceholder(1), "§8--------------");
+        if(Common.getInstance().getDutyPlayers().containsKey(player.getUniqueId()))
+            board.setValue(1, "§8---- ", "§c" + TimeFormat.getInMinutes(System.currentTimeMillis() - Common.getInstance().getDutyPlayers().get(player.getUniqueId())) + "min §8----");
+        else
+            board.setValue(1, module.getPlaceholder(1), "§8-------------");
         board.setValue(2, module.getPlaceholder(2), "");
         int line = 3;
         for(int i = 0; i < scoreboard.keySet().size(); i++) {
@@ -61,7 +64,10 @@ public class ManagerScoreboard {
         for(int i = line; i < 22; i++) {
             board.removeLine(i);
         }
-        board.setValue(line, module.getPlaceholder(line), "§8--------------");
+        if(Common.getInstance().getDutyPlayers().containsKey(player.getUniqueId()))
+            board.setValue(line, "§8---- §cIm", " §cDienst §8----");
+        else
+            board.setValue(line, module.getPlaceholder(line), "§8--------------");
         return board;
     }
 

@@ -36,8 +36,13 @@ public class TimeFormat {
         return (minutes == 1 ? minutes + " Minute" : minutes + " Minuten");
     }
 
+    public static double getInMinutesString(long time) {
+        long minutes = ((long) (((double) time / (1000 * 60)) * 100));
+        return ((Long) minutes).doubleValue() / 100;
+    }
+
     public static int getInHours(long time) {
-        return ((int) (((double) time / (1000 * 60 * 60)) * 100));
+        return ((int) (((double) time / (1000 * 60 * 60))));
     }
 
     public static int getInMinutes(long time) {
