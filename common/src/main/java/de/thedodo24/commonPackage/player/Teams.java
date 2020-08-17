@@ -8,7 +8,7 @@ import org.bukkit.ChatColor;
 public enum Teams {
 
     HELFER("helfer", "helfer-duty","ingi-leiter", "Eventhelfer", "team.mod.bau", "team-helfer", ChatColor.GOLD),
-    MVA("mva", "mva-duty", "mva-leiter", "MVA", "team.mod.medien", "team-mva", ChatColor.DARK_PURPLE),
+    MVA("mva", "mva-duty", "mva-leiter", "MVA", "team.mod.medien", "team-mva", ChatColor.DARK_AQUA),
     FBT("fbt", "fbt-duty", "fbt-leiter","FBT", "team.mod.bau", "team-fbt", ChatColor.YELLOW),
     POLIZEI("polizist", "polizist-duty", "poli-leiter", "Polizei", "team.mod.justiz", "team-polizist", ChatColor.AQUA),
     SUPPORTER("supporter", "supporter-duty","sup-leiter","Supporter", "team.mod.community", "team-supporter", ChatColor.GREEN),
