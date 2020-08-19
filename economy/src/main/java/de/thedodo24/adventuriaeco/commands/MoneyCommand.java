@@ -16,8 +16,10 @@ import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class MoneyCommand implements CommandExecutor, TabCompleter {
@@ -44,6 +46,15 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         balanceHelpInfo.setColor(ChatColor.GRAY);
         balanceHelp.addExtra(balanceHelpCommand);
         balanceHelp.addExtra(balanceHelpInfo);
+        TextComponent topHelp = new TextComponent(prefix);
+        TextComponent topHelpCommand = new TextComponent("/money top");
+        TextComponent topHelpInfo = new TextComponent(" | Zeigt die vermögensreichsten Spieler");
+        topHelpCommand.setColor(ChatColor.GREEN);
+        topHelpCommand.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/money top"));
+        topHelpCommand.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("/money top").create()));
+        topHelpInfo.setColor(ChatColor.GRAY);
+        topHelp.addExtra(balanceHelpCommand);
+        topHelp.addExtra(balanceHelpInfo);
 
 
         TextComponent takeHelp = new TextComponent(prefix);
@@ -79,6 +90,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             Player a = (Player) p;
             a.spigot().sendMessage(payHelp);
             a.spigot().sendMessage(balanceHelp);
+            a.spigot().sendMessage(topHelp);
             if(a.hasPermission("money.admin")) {
                 a.sendMessage("\n");
                 a.spigot().sendMessage(giveHelp);
@@ -89,7 +101,8 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             p.sendMessage("/money give [Spieler] [Betrag]\n" +
                     "/money take [Spieler] [Betrag]\n" +
                     "/money set [Spieler] [Betrag]\n" +
-                    "/money balance [Spieler]");
+                    "/money balance [Spieler]\n" +
+                    "/money top");
         }
     }
 
@@ -114,6 +127,11 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                 if(args[0].equalsIgnoreCase("balance") || args[0].equalsIgnoreCase("bal")) {
                     String money = format(Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId()).getBalance());
                     p.sendMessage(prefix + "§7Dein Kontostand beträgt §a" + money);
+                } else if(args[0].equalsIgnoreCase("top")) {
+                    HashMap<User, Long> top = Economy.getInstance().getManager().getPlayerManager().getHighestMoney();
+                    p.sendMessage("§7|------| §aReichste Spieler §7|------|");
+                    AtomicInteger a = new AtomicInteger(1);
+                    top.forEach((user, val) -> p.sendMessage("§7"+a.getAndIncrement()+". §a" + user.getName() + "§7: " + format(val)));
                 } else {
                     sendHelpMessage(p);
                 }
@@ -328,7 +346,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         if(commandSender instanceof Player) {
             Player p = (Player) commandSender;
             if(args.length == 1) {
-                List<String> r = Lists.newArrayList("pay", "balance");
+                List<String> r = Lists.newArrayList("pay", "balance", "top");
                 if(p.hasPermission("money.admin")) {
                     r.add("give");
                     r.add("take");

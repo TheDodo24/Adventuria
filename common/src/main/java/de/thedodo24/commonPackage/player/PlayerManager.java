@@ -7,6 +7,7 @@ import com.arangodb.velocypack.VPackSlice;
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.arango.CollectionManager;
+import de.thedodo24.commonPackage.economy.BankAccount;
 import de.thedodo24.commonPackage.towny.Town;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -40,6 +41,40 @@ public class PlayerManager extends CollectionManager<User, UUID> {
             return this.getOrGenerate(uniqueId);
         }
         return null;
+    }
+
+    public LinkedHashMap<User, Long> getHighestMoney() {
+        List<User> users = getUsers();
+        HashMap<UUID, Long> totalAmount = new HashMap<>();
+        users.forEach(user -> {
+            long total = user.getBalance();
+            List<BankAccount> bankAccounts = Common.getInstance().getManager().getBankManager().getOwnerBankAccounts(user.getKey());
+            total += bankAccounts.stream().mapToLong(BankAccount::getBalance).sum();
+            totalAmount.put(user.getKey(), total);
+        });
+        List<UUID> mapKeys = new ArrayList<>(totalAmount.keySet());
+        List<Long> mapValues = new ArrayList<>(totalAmount.values());
+
+        Collections.sort(mapValues);
+        Collections.reverse(mapValues);
+
+        LinkedHashMap<User, Long> sortedMap = new LinkedHashMap<>();
+        for(Long val : mapValues) {
+            Iterator<UUID> keyIt = mapKeys.iterator();
+            while(keyIt.hasNext()) {
+                UUID key = keyIt.next();
+                long comp1 = totalAmount.get(key);
+                long comp2 = val;
+                if(comp1 == comp2) {
+                    keyIt.remove();
+                    if(sortedMap.size() < 10)
+                        sortedMap.put(get(key), val);
+                    else
+                        break;
+                }
+            }
+        }
+        return sortedMap;
     }
 
     public LinkedHashMap<User, Long> getHighestOntime() {
