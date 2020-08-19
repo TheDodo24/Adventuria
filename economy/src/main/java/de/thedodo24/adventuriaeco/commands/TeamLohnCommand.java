@@ -42,16 +42,13 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
             BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().getAccountForPlayer(p);
             if(teamAccount != null || p.hasPermission("tlohn.admin")) {
                 p.sendMessage(prefix + "§c/tlohn balance " + (p.hasPermission("tlohn.admin") ? "<Team> " : "") +"§7| Zeigt den Kontostand deines, oder des Teams.");
-                if(teamAccount != null && teamAccount.getMembers().contains(p.getUniqueId())) {
-                    p.sendMessage(prefix + "§c/tlohn pay [Spieler] [Betrag] §7| Überweißt dem Spieler seinen Lohn.");
-                }
                 if(p.hasPermission("tlohn.admin")) {
                     p.sendMessage("\n");
                     p.sendMessage(prefix + "§c/tlohn list §7| Listet die Teams auf");
                     p.sendMessage(prefix + "§c/tlohn give [Team] [Betrag] §7| Gibt dem Teamkonto den Betrag.");
                     p.sendMessage(prefix + "§c/tlohn take [Team] [Betrag] §7| Nimmt dem Teamkonto den Betrag.");
                     p.sendMessage(prefix + "§c/tlohn set [Team] [Betrag] §7| Setzt das Teamkonto auf den Betrag.");
-                    p.sendMessage(prefix + "§c/tlohn sethead [Team] [Spieler] §7| Setzt den Teamleiter des Teams.");
+                    //p.sendMessage(prefix + "§c/tlohn sethead [Team] [Spieler] §7| Setzt den Teamleiter des Teams.");
                 }
             } else {
                 p.sendMessage(noPerm("no-team"));
@@ -240,8 +237,6 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                 List<String> returnAble = Lists.newArrayList();
                 if(teamAccount != null) {
                     returnAble.add("balance");
-                    if(teamAccount.getMembers().contains(p.getUniqueId()))
-                        returnAble.add("pay");
                 }
                 if(p.hasPermission("tlohn.admin")) {
                     returnAble.add("balance");
@@ -260,16 +255,12 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                     case "take":
                     case "sethead":
                         return Common.getInstance().removeAutoComplete(Common.getInstance().getTeamAccounts().stream().map(a -> a.split("-")[1]).collect(Collectors.toList()), args[1]);
-                    case "pay":
-                        return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
                 }
             } else if(args.length == 3) {
                 switch (args[0].toLowerCase()) {
                     case "give":
                     case "set":
                     case "take":
-                    case "pay":
-                        return Common.getInstance().removeAutoComplete(Lists.newArrayList("7500", "15000", "20000", "40000", "45000"), args[2]);
                     case "sethead":
                         return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[2]);
                 }
