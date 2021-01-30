@@ -29,7 +29,8 @@ public class JailLocation implements ArangoWritable<String> {
 
     @Override
     public void read(BaseDocument document) {
-        loc = Location.deserialize((Map<String, Object>) document.getProperties().getOrDefault("location", Bukkit.getWorlds().get(0).getSpawnLocation().serialize()));
+        loc = Location.deserialize((Map<String, Object>) document.getProperties().getOrDefault("location",
+                                    Bukkit.getWorld("Freebuild").getSpawnLocation().serialize()));
     }
 
     @Override
