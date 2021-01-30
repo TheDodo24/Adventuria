@@ -9,6 +9,7 @@ public enum CustomScoreboardType {
     CORP,
     TPS,
     PING,
-    TOWNY;
+    TOWNY,
+    WORLDTIME;
 
 }

@@ -10,10 +10,8 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Getter
 public class ScoreboardModule {
@@ -41,6 +39,8 @@ public class ScoreboardModule {
                 return "§cPing";
             case TOWNY:
                 return "§6Stadt";
+            case WORLDTIME:
+                return "§eWeltzeit";
             default:
                 return "";
         }
@@ -91,6 +91,10 @@ public class ScoreboardModule {
                 } else {
                     return "0 A";
                 }
+            case WORLDTIME:
+                Date date = TimeFormat.ticksToDate(Bukkit.getPlayer(user.getKey()).getWorld().getTime());
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.GERMAN);
+                return simpleDateFormat.format(date);
             default:
                 return "";
         }
