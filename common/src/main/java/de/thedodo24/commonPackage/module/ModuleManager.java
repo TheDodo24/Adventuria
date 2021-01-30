@@ -15,6 +15,7 @@ import de.thedodo24.commonPackage.towny.PlotManager;
 import de.thedodo24.commonPackage.towny.TownManager;
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import de.thedodo24.commonPackage.player.PlayerManager;
 
@@ -54,13 +55,13 @@ public class ModuleManager {
         this.playerManager = new PlayerManager(database);
         this.bankManager = new BankManager(database);
         this.armorStandManager = new ArmorStandManager(database);
-        this.jailManager = new JailManager(database);
         this.logHandler = new BankLogHandler(database);
         this.townManager = new TownManager(database);
         this.plotManager = new PlotManager(database);
         this.nationManager = new NationManager(database);
         this.logManager = new LogManager(database);
         this.mySQL = mySQL;
+        Bukkit.getScheduler().scheduleAsyncDelayedTask(getPlugin(), () -> this.jailManager = new JailManager(database), 1L);
     }
 
     @SafeVarargs
