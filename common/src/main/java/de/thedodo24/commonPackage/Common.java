@@ -2,21 +2,27 @@ package de.thedodo24.commonPackage;
 
 import com.google.common.collect.Lists;
 import de.thedodo24.commonPackage.commands.*;
+import de.thedodo24.commonPackage.economy.BankAccount;
 import de.thedodo24.commonPackage.listener.PlayerListener;
 import de.thedodo24.commonPackage.module.ModuleSettings;
+import de.thedodo24.commonPackage.player.Teams;
 import de.thedodo24.commonPackage.player.User;
 import de.thedodo24.commonPackage.utils.Lag;
 import de.thedodo24.commonPackage.utils.ManagerScoreboard;
 import lombok.Getter;
 import de.thedodo24.commonPackage.module.Module;
 import de.thedodo24.commonPackage.module.ModuleManager;
+import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.permission.Permission;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 
 @Getter
 @ModuleSettings
@@ -35,6 +41,11 @@ public class Common extends Module {
 
     private long nextDay;
     private long nextWeek;
+
+    private LuckPerms luckPerms;
+
+    private SimpleDateFormat dateFormat;
+
 
     public Common(ModuleSettings settings, ModuleManager manager, JavaPlugin plugin) {
         super(settings, manager, plugin);
@@ -71,8 +82,21 @@ public class Common extends Module {
                     user.setDayOntime(0);
                 }
             });
-            setNextWeek();
-            setNextDay();
+            AtomicLong total = new AtomicLong();
+            Arrays.stream(Teams.values()).filter(t -> !t.equals(Teams.ADMINISTRATOR) && !t.equals(Teams.MODERATOR))
+                    .forEach(t -> {
+                        BankAccount bankAccount = getManager().getBankManager().get(t.getBankAccount());
+                        long money = t.getSalary() * t.getMaxEmployees();
+                        total.addAndGet(money);
+                        bankAccount.depositMoney(money);
+                        getManager().getBankManager().save(bankAccount);
+                        getPlugin().getLogger().log(Level.INFO, "Team " + t.getDisplayName() + " getted " + (double) (money / 100) + "A salary.");
+                    });
+            BankAccount staatskasse = getManager().getBankManager().get("staatskasse");
+            staatskasse.withdrawMoney(total.get());
+            getManager().getBankManager().save(staatskasse);
+            getPlugin().getLogger().log(Level.INFO, "Totally payed " + (double) (total.get() / 100) + "A salary");
+            setTimes();
         } else if(currentTime >= getNextDay()) {
             getManager().getPlayerManager().getUsers().forEach(user -> {
                 if(getPlayerOnline().containsKey(user.getKey())) {
@@ -93,7 +117,7 @@ public class Common extends Module {
                     user.setDayOntime(0);
                 }
             });
-            setNextDay();
+            getPlugin().getLogger().log(Level.INFO, "Setted next day to " + dateFormat.format(new Date(setNextDay())));
         }
     }
 
@@ -109,6 +133,10 @@ public class Common extends Module {
         } catch (Exception e) {
             System.err.println("[Adventuria] Vault is depended to load this plugin");
         }
+        RegisteredServiceProvider<LuckPerms> luckpermsRsp = getPlugin().getServer().getServicesManager().getRegistration(LuckPerms.class);
+        if(luckpermsRsp != null) {
+            luckPerms = luckpermsRsp.getProvider();
+        }
         charList = Lists.newArrayList("!", "\"", "§", "$", "%", "&", "/",
                 "(", ")", "=", "?", "`", "´", "+", "*", "#", "'", ":", ".", ";",
                 ",", "<", ">", "~", "\\", "}", "]", "[", "{", "³", "²", "^", "°", "ß", "ü", "ä", "ö", "Ä", "Ö", "Ü");
@@ -122,8 +150,8 @@ public class Common extends Module {
             Bukkit.getOnlinePlayers().forEach(ManagerScoreboard::new);
             Bukkit.getOnlinePlayers().forEach(all -> getPlayerOnline().put(all.getUniqueId(), System.currentTimeMillis()));
         }
-        setNextDay();
-        setNextWeek();
+        dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm:ss.SS");
+        setTimes();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this.getPlugin(), new Lag(), 100L, 1L);
         Bukkit.getScheduler().scheduleAsyncRepeatingTask(this.getPlugin(), () ->
@@ -136,7 +164,12 @@ public class Common extends Module {
 
     }
 
-    private void setNextDay() {
+    private void setTimes() {
+        getPlugin().getLogger().log(Level.INFO, "Setted next day to " + dateFormat.format(new Date(setNextDay())));
+        getPlugin().getLogger().log(Level.INFO, "Setted next week to " + dateFormat.format(new Date(setNextWeek())));
+    }
+
+    private long setNextDay() {
         Calendar calendar = Calendar.getInstance(Locale.GERMANY);
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -144,9 +177,10 @@ public class Common extends Module {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         nextDay = calendar.getTimeInMillis();
+        return nextDay;
     }
 
-    private void setNextWeek() {
+    private long setNextWeek() {
         Calendar calendar = Calendar.getInstance(Locale.GERMANY);
         calendar.add(Calendar.WEEK_OF_YEAR, 1);
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
@@ -155,6 +189,7 @@ public class Common extends Module {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         nextWeek = calendar.getTimeInMillis();
+        return nextWeek;
     }
 
     @Override

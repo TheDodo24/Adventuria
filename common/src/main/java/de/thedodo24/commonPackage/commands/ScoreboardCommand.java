@@ -109,7 +109,7 @@ public class ScoreboardCommand implements CommandExecutor, TabCompleter {
                             return false;
                         }
                         if(type.equals(CustomScoreboardType.MONEY) || type.equals(CustomScoreboardType.ONLINE) || type.equals(CustomScoreboardType.CORP) || type.equals(CustomScoreboardType.TPS)
-                        || type.equals(CustomScoreboardType.PING) || type.equals(CustomScoreboardType.TOWNY)) {
+                        || type.equals(CustomScoreboardType.PING) || type.equals(CustomScoreboardType.TOWNY) || type.equals(CustomScoreboardType.WORLDTIME)) {
                             User user = Common.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
                             List<Integer> sortedList = user.getCustomScoreboard().keySet().stream().map(Integer::parseInt).sorted().collect(Collectors.toList());
                             Collections.reverse(sortedList);
