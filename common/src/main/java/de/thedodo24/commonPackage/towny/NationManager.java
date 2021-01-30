@@ -7,6 +7,9 @@ import de.thedodo24.commonPackage.arango.CollectionManager;
 import de.thedodo24.commonPackage.arango.WritableGenerator;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NationManager extends CollectionManager<Nation, String> {
 
     @Getter
@@ -22,5 +25,9 @@ public class NationManager extends CollectionManager<Nation, String> {
             this.get(n);
         }
         this.closeCursor(cursor);
+    }
+
+    public List<Nation> getNations() {
+        return new ArrayList<>(this.cache.values());
     }
 }

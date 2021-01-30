@@ -96,8 +96,8 @@ public class Town implements ArangoWritable<String> {
         return "Megacity";
     }
 
-    public String getNation() {
-        return (String) getProperty("nation");
+    public Nation getNation() {
+        return Common.getInstance().getManager().getNationManager().get((String) getProperty("nation"));
     }
 
     public boolean checkNation() {
@@ -107,6 +107,8 @@ public class Town implements ArangoWritable<String> {
     public void setNation(String name) {
         updateProperty("nation", name);
     }
+
+    public void removeNation() { updateProperty("nation", null); }
 
     public String getName() {
         return (String) getProperty("name");

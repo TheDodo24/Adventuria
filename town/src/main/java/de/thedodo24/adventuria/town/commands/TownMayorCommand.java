@@ -85,8 +85,8 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                                         p.sendMessage(prefix + "§7Dieser Chunk wurde bereits beansprucht!");
                                         return false;
                                     }
-                                    if((town.getMoney() - 600000) < 0) {
-                                        p.sendMessage(prefix + "§7Du hast nicht genügend Geld für diese Aktion auf dem Stadtkonto. §8(Kosten: 6000 A)");
+                                    if((town.getMoney() - 750000) < 0) {
+                                        p.sendMessage(prefix + "§7Du hast nicht genügend Geld für diese Aktion auf dem Stadtkonto. §8(Kosten: 7500 A)");
                                         return false;
                                     }
                                     Plot plot = Towny.getInstance().getManager().getPlotManager().getOrGenerate(String.valueOf(chunk.getChunkKey()), key -> {
@@ -117,7 +117,7 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                                         return a;
                                     });
                                     Towny.getInstance().getManager().getPlotManager().save(plot);
-                                    town.withdrawMoney(6000 * 100);
+                                    town.withdrawMoney(7500 * 100);
                                     p.sendMessage(prefix + "Dieser Chunk §8[" + chunk.getX() + ";" + chunk.getZ() + "] §7wurde für die Stadt beansprucht." + (plot.isOutpostPlot() ? " (Outpost: " + plot.getOutpost() + ")" : ""));
                                 } else {
                                     p.sendMessage(prefix + "§7Der Chunk grenzt an keinem Stadtchunk.");
@@ -318,12 +318,12 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                                         return false;
                                     }
                                     if(size > 0) {
-                                        if((town.getMoney() - (200000 * size)) < 0) {
+                                        if((town.getMoney() - (250000 * size)) < 0) {
                                             p.sendMessage(prefix + "Du hast nicht genügend Geld.");
                                             return true;
                                         }
                                         town.addBuyedTownSize(size);
-                                        town.withdrawMoney(200000 * size);
+                                        town.withdrawMoney(250000 * size);
                                         p.sendMessage(prefix + "§7Du hast deine maximale Stadtgröße um §6" + size + " §7vergrößert.");
                                     } else {
                                         p.sendMessage(prefix + "§6Argument 3 §7muss eine ganzzahlige positve Zahl sein.");
@@ -344,7 +344,7 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                                             p.sendMessage(prefix + "§7Dieses Plot ist bereits besetzt.");
                                             return true;
                                         }
-                                        if((town.getMoney() - 1500000) < 0) {
+                                        if((town.getMoney() - 2000000) < 0) {
                                             p.sendMessage(prefix + "Du hast nicht genug Geld um einen §6Outpost §7zu gründen.");
                                             return true;
                                         }
@@ -371,7 +371,7 @@ public class TownMayorCommand implements CommandExecutor, TabCompleter {
                                             return a;
                                         });
                                         Towny.getInstance().getManager().getPlotManager().save(plot);
-                                        town.withdrawMoney(1500000);
+                                        town.withdrawMoney(2000000);
                                         Towny.getInstance().getManager().getPlayerManager().getResidents(town).stream().filter(u -> Bukkit.getPlayer(u.getKey()) != null).forEach(u ->
                                                 Bukkit.getPlayer(u.getKey()).sendMessage("§7§l| §6" + town.getName() + " §7» Es wurde ein neuer Outpost §8(" + name + ") §7erstellt."));
                                     } else {

@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class TownCommand implements CommandExecutor, TabCompleter {
@@ -117,10 +118,12 @@ public class TownCommand implements CommandExecutor, TabCompleter {
                     s.sendMessage(prefix + "§7Du musst ein Spieler sein.");
                 }
             } else if(args[0].equalsIgnoreCase("list")) {
-                List<Town> towns = Towny.getInstance().getManager().getTownManager().getTowns();
-                s.sendMessage("§7|----------| §6Städte §7|----------|");
-                towns.stream().sorted(Comparator.comparingInt(t -> Towny.getInstance().getManager().getPlayerManager().getResidents((Town) t).size()).reversed())
-                        .forEach(town -> s.sendMessage("§7» §6" + town.getName() + " §7("+town.getRank()+") §7|| " + Towny.getInstance().getManager().getPlayerManager().getResidents(town).size() + " Einwohner || " + town.getOutposts().size() + " Outposts"));
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    List<Town> towns = Towny.getInstance().getManager().getTownManager().getTowns();
+                    s.sendMessage("§7|----------| §6Städte §7|----------|");
+                    towns.stream().sorted(Comparator.comparingInt(t -> Towny.getInstance().getManager().getPlayerManager().getResidents((Town) t).size()).reversed())
+                            .forEach(town -> s.sendMessage("§7» §6" + town.getName() + " §7("+town.getRank()+") §7|| " + Towny.getInstance().getManager().getPlayerManager().getResidents(town).size() + " Einwohner || " + town.getOutposts().size() + " Outposts"));
+                });
             } else if(args[0].equalsIgnoreCase("online")) {
                 if(s instanceof Player) {
                     Player p = (Player) s;
@@ -300,7 +303,7 @@ public class TownCommand implements CommandExecutor, TabCompleter {
                                 return true;
                             }
                         } catch(NumberFormatException ignored) {
-                            p.sendMessage(prefix + "§2Argument 2 §7muss eine positive Zahl sein.");
+                            p.sendMessage(prefix + "§6Argument 2 §7muss eine positive Zahl sein.");
                             return true;
                         }
                         if(value > 0) {
@@ -349,7 +352,7 @@ public class TownCommand implements CommandExecutor, TabCompleter {
                             long value;
                             try {
                                 if(arg.equalsIgnoreCase("all"))
-                                    value = user.getBalance();
+                                    value = town.getMoney();
                                 else
                                 if(!arg.equalsIgnoreCase("Infinity") && !arg.equalsIgnoreCase("-Infinity")) {
                                     value = (long) (Double.parseDouble(arg) * 100);

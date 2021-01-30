@@ -88,13 +88,16 @@ public class Towny extends Module {
 
     private long setTownTax() {
         Calendar town = Calendar.getInstance();
-        town.set(Calendar.DAY_OF_WEEK, 8);
+        town.set(Calendar.DAY_OF_WEEK_IN_MONTH, 1);
+        town.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         town.set(Calendar.HOUR_OF_DAY, 18);
         town.set(Calendar.MINUTE, 0);
         town.set(Calendar.SECOND, 0);
         town.set(Calendar.MILLISECOND, 0);
-        if(System.currentTimeMillis() > town.getTimeInMillis()) {
-            town.add(Calendar.WEEK_OF_YEAR, 1);
+        if(System.currentTimeMillis() >= town.getTimeInMillis()) {
+            town.add(Calendar.MONTH, 1);
+            town.set(Calendar.DAY_OF_WEEK_IN_MONTH, 1);
+            town.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         }
         townTax = town.getTimeInMillis();
         return townTax;
@@ -218,6 +221,7 @@ public class Towny extends Module {
         new TownChatCommand();
         new TownResidentCommand();
         new NationCommand();
+        new NationAdminCommand();
     }
 
     @Override

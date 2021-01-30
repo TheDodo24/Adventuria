@@ -82,12 +82,14 @@ public class Nation implements ArangoWritable<String> {
     public void addTown(Town t) {
         List<String> towns = (List<String>) getProperty("towns");
         towns.add(t.getKey());
+        t.setNation(getName());
         updateProperty("towns", towns);
     }
 
     public void removeTown(Town t) {
         List<String> towns = (List<String>) getProperty("towns");
         towns.remove(t.getKey());
+        t.removeNation();
         updateProperty("towns", towns);
     }
 
@@ -125,6 +127,14 @@ public class Nation implements ArangoWritable<String> {
 
     public void setCapital(Town town) {
         updateProperty("capital", town.getKey());
+    }
+
+    public boolean isPublic() {
+        return (boolean) getProperty("public");
+    }
+
+    public void setPublic(boolean bool) {
+        updateProperty("public", bool);
     }
 
 }
