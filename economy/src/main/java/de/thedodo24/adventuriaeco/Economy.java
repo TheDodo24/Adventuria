@@ -72,11 +72,14 @@ public class Economy extends Module {
         registerListener(new WorldListeners());
 
         this.getManager().getBankManager().getOrGenerate("staatskasse", BankAccount::new);
-        Common.getInstance().getTeamAccounts().forEach(account -> this.getManager().getBankManager().getOrGenerate(account, key -> {
-            BankAccount bankAccount = new BankAccount(key);
-            bankAccount.setBankType(BankType.BANK);
-            return bankAccount;
-        }));
+        Common.getInstance().getTeamAccounts().forEach(account -> {
+            this.getManager().getBankManager().getOrGenerate(account, key -> {
+                BankAccount bankAccount = new BankAccount(key);
+                bankAccount.setBankType(BankType.BANK);
+                return bankAccount;
+            });
+            this.getManager().getLogHandler().getOrGenerate(account);
+        });
         namespacedKey = new NamespacedKey(getPlugin(), "emerald");
     }
 
