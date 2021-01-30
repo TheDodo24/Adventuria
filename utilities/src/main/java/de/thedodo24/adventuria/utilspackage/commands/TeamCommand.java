@@ -1,15 +1,23 @@
 package de.thedodo24.adventuria.utilspackage.commands;
 
+import com.arangodb.ArangoCursor;
+import com.arangodb.entity.BaseDocument;
 import com.google.common.collect.Lists;
 import de.thedodo24.adventuria.utilspackage.Utils;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.economy.BankAccount;
+import de.thedodo24.commonPackage.economy.BankLog;
+import de.thedodo24.commonPackage.economy.BankLogType;
 import de.thedodo24.commonPackage.player.Teams;
 import de.thedodo24.commonPackage.player.User;
 import de.thedodo24.commonPackage.teams.TeamLog;
 import de.thedodo24.commonPackage.utils.TimeFormat;
+import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
+import net.luckperms.api.node.types.InheritanceNode;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -51,17 +59,57 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                             Common.getInstance().getDutyPlayers().remove(p.getUniqueId());
                             TeamLog teamLog = Utils.getInstance().getManager().getLogManager().getOrGenerate(p.getUniqueId());
                             teamLog.addEntry(start, System.currentTimeMillis());
-                            Teams t = Arrays.stream(Teams.values()).filter(team -> team.getPermName().equalsIgnoreCase(Common.getInstance().getPerms().getPrimaryGroup(p))).findFirst().get();
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " parent add " + t.getPermName());
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " parent remove " + t.getDutyName());
+                            Utils.getInstance().getManager().getLogManager().save(teamLog);
+                            List<Teams> teamsLeiter = Arrays.stream(Teams.values()).filter(team -> Common.getInstance().getPerms().getPrimaryGroup(p).startsWith(team.getLeiterGroup())).collect(Collectors.toList());
+                            Teams t;
+                            if(teamsLeiter.size() > 0) {
+                                if(teamsLeiter.contains(Teams.INGENIEUR))
+                                    t = Teams.INGENIEUR;
+                                else if(teamsLeiter.contains(Teams.ADMINISTRATOR))
+                                    t = Teams.ADMINISTRATOR;
+                                else
+                                    t = teamsLeiter.get(0);
+                            } else {
+                                t = Arrays.stream(Teams.values()).filter(team -> team.getDutyName().equalsIgnoreCase(Common.getInstance().getPerms().getPrimaryGroup(p))).findFirst().get();
+                            }
+                            Common.getInstance().getLuckPerms().getUserManager().modifyUser(p.getUniqueId(), (net.luckperms.api.model.user.User u) -> {
+                                Node toAdd = InheritanceNode.builder(teamsLeiter.size() > 0 ? t.getLeiterGroup() : t.getPermName()).build();
+                                Node toRemove = InheritanceNode.builder(teamsLeiter.size() > 0 ? t.getLeiterGroup() + "-duty" : t.getDutyName()).build();
+
+                                u.data().add(toAdd);
+                                u.data().remove(toRemove);
+                            });
+                            p.setGameMode(GameMode.SURVIVAL);
+                            p.setFlying(false);
+                            p.setAllowFlight(false);
                             Bukkit.getOnlinePlayers().stream()
                                     .collect(Collectors.toCollection(() -> Lists.newArrayList(Bukkit.getConsoleSender())))
                                     .forEach(all -> all.sendMessage(prefix + t.getColor() + p.getName() + " §7ist nicht mehr als " + t.getColor() + t.getDisplayName() + " §7im Dienst."));
+                            /*Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " parent add " + (teamsLeiter.size() > 0 ? t.getLeiterGroup() : t.getPermName()));
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " parent remove " + (teamsLeiter.size() > 0 ? t.getLeiterGroup() + "-duty" : t.getDutyName()));
+                            */
+
                         } else {
                             Common.getInstance().getDutyPlayers().put(p.getUniqueId(), System.currentTimeMillis());
-                            Teams t = Arrays.stream(Teams.values()).filter(team -> team.getPermName().equalsIgnoreCase(Common.getInstance().getPerms().getPrimaryGroup(p))).findFirst().get();
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " parent remove " + t.getPermName());
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " parent add " + t.getDutyName());
+                            List<Teams> teamsLeiter = Arrays.stream(Teams.values()).filter(team -> Common.getInstance().getPerms().getPrimaryGroup(p).startsWith(team.getLeiterGroup())).collect(Collectors.toList());
+                            Teams t;
+                            if(teamsLeiter.size() > 0) {
+                                if(teamsLeiter.contains(Teams.INGENIEUR))
+                                    t = Teams.INGENIEUR;
+                                else if(teamsLeiter.contains(Teams.ADMINISTRATOR))
+                                    t = Teams.ADMINISTRATOR;
+                                else
+                                    t = teamsLeiter.get(0);
+                            } else {
+                                t = Arrays.stream(Teams.values()).filter(team -> team.getPermName().equalsIgnoreCase(Common.getInstance().getPerms().getPrimaryGroup(p))).findFirst().get();
+                            }
+                            Common.getInstance().getLuckPerms().getUserManager().modifyUser(p.getUniqueId(), (net.luckperms.api.model.user.User u) -> {
+                                Node toRemove = InheritanceNode.builder(teamsLeiter.size() > 0 ? t.getLeiterGroup() : t.getPermName()).build();
+                                Node toAdd = InheritanceNode.builder(teamsLeiter.size() > 0 ? t.getLeiterGroup() + "-duty" : t.getDutyName()).build();
+
+                                u.data().add(toAdd);
+                                u.data().remove(toRemove);
+                            });
                             Bukkit.getOnlinePlayers().stream()
                                     .collect(Collectors.toCollection(() -> Lists.newArrayList(Bukkit.getConsoleSender())))
                                     .forEach(all -> all.sendMessage(prefix + t.getColor() + p.getName() + " §7ist nun als " + t.getColor() + t.getDisplayName() + " §7im Dienst."));
@@ -79,12 +127,48 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             if(s instanceof Player) {
                 Player p = (Player) s;
                 User user = Utils.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                if(user.isTeamHead()) {
+                if(args[0].equalsIgnoreCase("log")) {
+                    if(p.hasPermission("team.mod") || Utils.getInstance().getManager().getPlayerManager().get(p.getUniqueId()).isTeamHead()) {
+                        User teamMember = Utils.getInstance().getManager().getPlayerManager().getByName(args[1].toLowerCase());
+                        if(teamMember != null) {
+                            TeamLog teamLog = Utils.getInstance().getManager().getLogManager().get(teamMember.getKey());
+                            if(teamLog != null) {
+                                List<HashMap<String, Long>> entries = teamLog.getEntries();
+                                if(entries.size() > 0) {
+                                    p.sendMessage("§7|----------| §cLogs §7|----------|");
+                                    SimpleDateFormat formatDay = new SimpleDateFormat("dd.MM.yy");
+                                    SimpleDateFormat formatHour = new SimpleDateFormat("HH:mm:ss");
+                                    List<Long> keySet = entries.stream().map(a -> a.get("start")).collect(Collectors.toList());
+                                    Collections.sort(keySet);
+                                    Collections.reverse(keySet);
+                                    keySet.stream().limit(5).forEachOrdered(start -> {
+                                        long end = entries.stream().filter(e -> e.get("start").longValue() == start).findAny().get().get("end");
+                                        long dur = end - start;
+                                        double minutes = TimeFormat.getInMinutesString(dur);
+                                        p.sendMessage("§7» §a" + formatDay.format(new Date(start)) + " §7-§a " + formatHour.format(new Date(start)) + " §8|| §c" + formatDay.format(new Date(end)) + " §7-§c " + formatHour.format(new Date(end)) + " §8|| §7" + minutes + (minutes == 1 ? " Minute" : " Minuten"));
+                                    });
+                                } else {
+                                    p.sendMessage(prefix + "§7Es sind keine Einträge im Log von §c" + teamMember.getName() + " §7verfügbar.");
+                                }
+                            } else {
+                                p.sendMessage(prefix + "§7Es ist kein Log über §c" + teamMember.getName() + " §7verfügbar.");
+                            }
+                        } else {
+                            p.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7existiert nicht.");
+                        }
+                    } else {
+                        p.sendMessage(prefix + noPerm("team.mod"));
+                    }
+                } else if(user.isTeamHead()) {
                     if(user.getTeams().size() == 1) {
                         Teams t = user.getTeams().get(0);
                         if(args[0].equalsIgnoreCase("add")) {
                             Player to;
                             if((to = Bukkit.getPlayer(args[1])) != null) {
+                                if(Common.getInstance().getDutyPlayers().containsKey(to.getUniqueId())) {
+                                    s.sendMessage(prefix + "§7Der Spieler ist im §cDutymodus§7.");
+                                    return true;
+                                }
                                 String primaryGroup = Common.getInstance().getPerms().getPrimaryGroup(to);
                                 if(Arrays.stream(Teams.values()).map(Teams::getPermName).anyMatch(g -> g.equalsIgnoreCase(primaryGroup))) {
                                     int wPrimary = Common.getInstance().getChat().getGroupInfoInteger("", primaryGroup, "weight", 0);
@@ -95,11 +179,18 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                     } else
                                         Common.getInstance().getPerms().playerRemoveGroup(to, primaryGroup);
                                 }
-                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + to.getName() + " parent set " + t.getPermName());
+                                Common.getInstance().getLuckPerms().getUserManager().modifyUser(to.getUniqueId(), (net.luckperms.api.model.user.User u) -> {
+                                    u.data().clear(NodeType.INHERITANCE::matches);
+
+                                    Node node = InheritanceNode.builder(t.getPermName()).build();
+                                    u.data().add(node);
+
+                                });
                                 for(int i = 0; i <= 5; i++) {
                                     Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(" "));
                                 }
-                                Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§7Wir begrüßen " + t.getColor() + to.getName() + " §7im " + t.getColor() + t.getDisplayName() + " §7Team. Herzlichen Glückwunsch und viel Erfolg!"));
+                                Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§7Wir begrüßen " + t.getColor() + to.getName() + " im " + t.getColor() + t.getDisplayName() + " §7Team. Herzlichen Glückwunsch und viel Erfolg!"));
+
                             } else {
                                 p.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7ist nicht online.");
                             }
@@ -109,8 +200,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                 OfflinePlayer op = Bukkit.getOfflinePlayer(uTo.getKey());
                                 String primaryGroup = Common.getInstance().getPerms().getPrimaryGroup("Freebuild", op);
                                 if(primaryGroup.equalsIgnoreCase(t.getPermName())) {
-                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + op.getName() + " parent set member");
+                                    Common.getInstance().getLuckPerms().getUserManager().modifyUser(op.getUniqueId(), (net.luckperms.api.model.user.User u) -> {
+                                        u.data().clear(NodeType.INHERITANCE::matches);
+
+                                        Node node = InheritanceNode.builder(Common.getInstance().getLuckPerms().getGroupManager().getGroup("member")).build();
+                                        u.data().add(node);
+                                    });
                                     Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§7Leider mussten wir von §6" + uTo.getName() + " §7Abschied nehmen. Wir bedanken uns für deine Arbeit im "+t.getColor() + t.getDisplayName() +" §7Team!"));
+
                                 } else {
                                     p.sendMessage(prefix + "§c" + uTo.getName() + " §7ist nicht in deinem Team.");
                                 }
@@ -127,40 +224,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                             sendHelpMessage(s);
                     }
                 } else {
-                    if(args[0].equalsIgnoreCase("log")) {
-                        if(p.hasPermission("team.mod") || Utils.getInstance().getManager().getPlayerManager().get(p.getUniqueId()).isTeamHead()) {
-                            User teamMember = Utils.getInstance().getManager().getPlayerManager().getByName(args[1].toLowerCase());
-                            if(teamMember != null) {
-                                TeamLog teamLog = Utils.getInstance().getManager().getLogManager().get(teamMember.getKey());
-                                if(teamLog != null) {
-                                    List<HashMap<String, Long>> entries = teamLog.getEntries();
-                                    if(entries.size() > 0) {
-                                        p.sendMessage("§7|-----| §cLogs §7|-----|");
-                                        SimpleDateFormat formatDay = new SimpleDateFormat("dd.MM.yy");
-                                        SimpleDateFormat formatHour = new SimpleDateFormat("HH:mm:ss");
-                                        List<Long> keySet = entries.stream().map(a -> a.get("start")).collect(Collectors.toList());
-                                        Collections.sort(keySet);
-                                        Collections.reverse(keySet);
-                                        keySet.stream().limit(5).forEachOrdered(start -> {
-                                            long end = entries.stream().filter(e -> e.get("start").longValue() == start).findAny().get().get("end");
-                                            long dur = end - start;
-                                            p.sendMessage("§7» §a" + formatDay.format(new Date(start)) + " §7-§a " + formatHour.format(new Date(start)) + " §8|| §c" + formatDay.format(new Date(end)) + " §7-§c " + formatHour.format(new Date(end)) + " §8|| §7" + TimeFormat.getInMinutes(dur) + " Minuten");
-                                        });
-                                    } else {
-                                        p.sendMessage(prefix + "§7Es sind keine Einträge im Log von §c" + teamMember.getName() + " §7verfügbar.");
-                                    }
-                                } else {
-                                    p.sendMessage(prefix + "§7Es ist kein Log über §c" + teamMember.getName() + " §7verfügbar.");
-                                }
-                            } else {
-                                p.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7existiert nicht.");
-                            }
-                        } else {
-                            p.sendMessage(prefix + noPerm("team.mod"));
-                        }
-                    } else {
-                        sendHelpMessage(s);
-                    }
+                    sendHelpMessage(s);
                 }
             } else {
                 s.sendMessage("Du musst ein Spieler sein.");
@@ -174,11 +238,17 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                         if ((to = Bukkit.getPlayer(args[2])) != null) {
                             User uTo = Utils.getInstance().getManager().getPlayerManager().get(to.getUniqueId());
                             uTo.addTeam(t);
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + to.getName() + " parent add " + t.getLeiterGroup());
+                            Common.getInstance().getLuckPerms().getUserManager().modifyUser(to.getUniqueId(), (net.luckperms.api.model.user.User u) -> {
+                                Node toAdd = InheritanceNode.builder(t.getLeiterGroup()).build();
+
+                                u.data().add(toAdd);
+                            });
                             for(int i = 0; i <= 5; i++) {
                                 Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(" "));
                             }
                             Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§7Wir dürfen " + t.getColor() + to.getName() + " §7als neuen Leiter des " + t.getColor() + t.getDisplayName() + " Teams §7begrüßen. Herzlichen Glückwunsch und viel Erfolg!"));
+
+                            //Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + to.getName() + " parent add " + t.getLeiterGroup());
                         } else {
                             s.sendMessage(prefix + "§c" + args[2] + " §7ist nicht online.");
                         }
@@ -189,28 +259,43 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                     s.sendMessage(noPerm("team.mod"));
                 }
             } else if(args[0].equalsIgnoreCase("add")) {
-                if(s.hasPermission("team.mod") || (s instanceof Player && Utils.getInstance().getManager().getPlayerManager().get(((Player) s).getUniqueId()).getTeams().size() > 1)) {
+                if(s.hasPermission("team.mod") || (s instanceof Player &&
+                        Utils.getInstance().getManager().getPlayerManager().get(((Player) s).getUniqueId()).getTeams().size() > 1)) {
                     if(Arrays.stream(Teams.values()).map(Enum::toString).anyMatch(t -> t.equalsIgnoreCase(args[2]))) {
                         Teams t = Teams.valueOf(args[2].toUpperCase());
-                        Player to;
-                        if ((to = Bukkit.getPlayer(args[1])) != null) {
-                            String primaryGroup = Common.getInstance().getPerms().getPrimaryGroup(to);
-                            if(Arrays.stream(Teams.values()).map(Teams::getPermName).anyMatch(g -> g.equalsIgnoreCase(primaryGroup))) {
-                                int wPrimary = Common.getInstance().getChat().getGroupInfoInteger("", primaryGroup, "weight", 0);
-                                int wTeam = Common.getInstance().getChat().getGroupInfoInteger("", t.getPermName(), "weight", 0);
-                                if(wPrimary >= wTeam) {
-                                    s.sendMessage(prefix + "§c" + to.getName() + " §7ist bereits in einem Team.");
+                        if(Utils.getInstance().getManager().getPlayerManager().get(((Player) s).getUniqueId()).getTeams().contains(t) || s.hasPermission("team.mod")) {
+                            Player to;
+                            if ((to = Bukkit.getPlayer(args[1])) != null) {
+                                if(Common.getInstance().getDutyPlayers().containsKey(to.getUniqueId())) {
+                                    s.sendMessage(prefix + "§7Der Spieler ist im §cDutymodus§7.");
                                     return true;
-                                } else
-                                    Common.getInstance().getPerms().playerRemoveGroup(to, primaryGroup);
+                                }
+                                String primaryGroup = Common.getInstance().getPerms().getPrimaryGroup(to);
+                                if(Arrays.stream(Teams.values()).map(Teams::getPermName).anyMatch(g -> g.equalsIgnoreCase(primaryGroup))) {
+                                    int wPrimary = Common.getInstance().getChat().getGroupInfoInteger("", primaryGroup, "weight", 0);
+                                    int wTeam = Common.getInstance().getChat().getGroupInfoInteger("", t.getPermName(), "weight", 0);
+                                    if(wPrimary >= wTeam) {
+                                        s.sendMessage(prefix + "§c" + to.getName() + " §7ist bereits in einem Team.");
+                                        return true;
+                                    } else
+                                        Common.getInstance().getPerms().playerRemoveGroup(to, primaryGroup);
+                                }
+                                Common.getInstance().getLuckPerms().getUserManager().modifyUser(to.getUniqueId(), (net.luckperms.api.model.user.User u) -> {
+                                    u.data().clear(NodeType.INHERITANCE::matches);
+
+                                    Node node = InheritanceNode.builder(t.getPermName()).build();
+                                    u.data().add(node);
+                                });
+                                for(int i = 0; i <= 5; i++) {
+                                    Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(" "));
+                                }
+                                Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§7Wir begrüßen " + t.getColor() + to.getName() + " im " + t.getColor() + t.getDisplayName() + " §7Team. Herzlichen Glückwunsch und viel Erfolg!"));
+
+                            } else {
+                                s.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7ist nicht online.");
                             }
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + to.getName() + " parent set " + t.getPermName());
-                            for(int i = 0; i <= 5; i++) {
-                                Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(" "));
-                            }
-                            Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§7Wir begrüßen " + t.getColor() + to.getName() + " im " + t.getColor() + t.getDisplayName() + " §7Team. Herzlichen Glückwunsch und viel Erfolg!"));
                         } else {
-                            s.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7ist nicht online.");
+                            s.sendMessage(prefix + "§7Du bist nicht der Leiter des Teams §c" + t.getDisplayName() + "§7.");
                         }
                     } else {
                         s.sendMessage(prefix + "§7Das Team §c" + args[2] + " §7existiert nicht.");
@@ -226,11 +311,17 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                         if(uTo != null) {
                             OfflinePlayer op = Bukkit.getOfflinePlayer(uTo.getKey());
                             String primaryGroup = Common.getInstance().getPerms().getPrimaryGroup("Freebuild", op);
-                            if(primaryGroup.equalsIgnoreCase(t.getPermName()) || primaryGroup.equalsIgnoreCase(t.getLeiterGroup())) {
+                            if(primaryGroup.equalsIgnoreCase(t.getPermName()) || primaryGroup.startsWith(t.getLeiterGroup())) {
                                 if(uTo.isTeamHead() && uTo.isTeam(t))
                                     uTo.removeTeam(t);
-                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + op.getName() + " parent set member");
+                                Common.getInstance().getLuckPerms().getUserManager().modifyUser(op.getUniqueId(), (net.luckperms.api.model.user.User u) -> {
+                                    u.data().clear(NodeType.INHERITANCE::matches);
+
+                                    Node node = InheritanceNode.builder(Common.getInstance().getLuckPerms().getGroupManager().getGroup("member")).build();
+                                    u.data().add(node);
+                                });
                                 Bukkit.getOnlinePlayers().forEach(all -> all.sendMessage(prefix + "§7Leider mussten wir von §6" + uTo.getName() + " §7Abschied nehmen. Wir bedanken uns für deine Arbeit im "+t.getColor() + t.getDisplayName() +" §7Team!"));
+
                             } else {
                                 s.sendMessage(prefix + "§c" + uTo.getName() + " §7ist nicht in dem Team.");
                             }
@@ -251,7 +342,10 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                         User uTo = Utils.getInstance().getManager().getPlayerManager().getByName(args[1].toLowerCase());
                         if(uTo != null) {
                             OfflinePlayer op = Bukkit.getOfflinePlayer(uTo.getKey());
-                            List<String> filteredTeams = Arrays.stream(Common.getInstance().getPerms().getPlayerGroups("Freebuild", op)).filter(teamTo -> user.getTeams().stream().map(Teams::getPermName).anyMatch(permName -> permName.equalsIgnoreCase(teamTo))).collect(Collectors.toList());
+                            List<String> filteredTeams = Arrays.stream(Common.getInstance().getPerms().getPlayerGroups("Freebuild", op))
+                                    .filter(teamTo -> user.getTeams().stream().map(Teams::getPermName).anyMatch(permName -> permName.equalsIgnoreCase(teamTo) || teamTo.equalsIgnoreCase(permName + "-duty")) ||
+                                                    user.getTeams().stream().map(Teams::getLeiterGroup).anyMatch(permName -> permName.equalsIgnoreCase(teamTo) || teamTo.equalsIgnoreCase(permName + "-duty")))
+                                    .collect(Collectors.toList());
                             if(filteredTeams.size() > 0) {
                                 String arg = args[2];
                                 if (arg.contains(","))
@@ -265,11 +359,11 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                     else {
                                         p.sendMessage("§7§l| §aGeld §7» Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
                                         p.sendMessage("§7§l| §aGeld §7» Der Kontostand des Spielers §a" + p.getName() + " §7wurde durch §aCONSOLE §7auf §a0A §7gesetzt.");
-                                        return false;
+                                        return true;
                                     }
                                 } catch (NumberFormatException ignored) {
                                     p.sendMessage(prefix + "§cArgument 2 §7muss eine positive Zahl sein.");
-                                    return false;
+                                    return true;
                                 }
                                 if (value > 0) {
                                     if(filteredTeams.size() == 1) {
@@ -279,14 +373,17 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                         if ((teamAccount.getBalance() - value) >= 0) {
                                             if ((uTo.getBalance() + value) < 0) {
                                                 p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
-                                                return false;
+                                                return true;
                                             }
                                             if ((teamAccount.getBalance()) < 0) {
                                                 p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
-                                                return false;
+                                                return true;
                                             }
                                             uTo.depositMoney(value);
                                             teamAccount.withdrawMoney(value);
+                                            BankLog log = Utils.getInstance().getManager().getLogHandler().get(teamAccount.getKey());
+                                            log.addHistory(System.currentTimeMillis(), BankLogType.TRANSFER_TO, uTo.getName(), value);
+                                            Utils.getInstance().getManager().getLogHandler().save(log);
                                             Utils.getInstance().getManager().getBankManager().save(teamAccount);
                                             Utils.getInstance().getManager().getPlayerManager().save(user);
                                             p.sendMessage(prefix + "§7Du hast §c" + uTo.getName() + " §7einen Lohn von §c" + formatValue(((Long) value).doubleValue() / 100) + " §7überwießen.");
@@ -315,7 +412,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 } else {
                     s.sendMessage("Du musst ein Spieler sein.");
                 }
-            } if(args[0].equalsIgnoreCase("log")) {
+            } else if(args[0].equalsIgnoreCase("log")) {
                 if(s instanceof Player) {
                     Player p = (Player) s;
                     if (p.hasPermission("team.mod") || Utils.getInstance().getManager().getPlayerManager().get(p.getUniqueId()).isTeamHead()) {
@@ -330,7 +427,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                         site = Integer.parseInt(args[2]);
                                     } catch(NumberFormatException e) {
                                         p.sendMessage(prefix + "§2Argument 3 §7muss eine postivite Ganzzahl sein.");
-                                        return false;
+                                        return true;
                                     }
                                     if(site > 0) {
                                         p.sendMessage("§7|-----| §cLogs §7|-----|");
@@ -343,13 +440,56 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                             keySet.stream().skip(5*(site - 1)).limit(5).forEachOrdered(start -> {
                                                 long end = entries.stream().filter(e -> e.get("start").longValue() == start).findAny().get().get("end");
                                                 long dur = end - start;
-                                                p.sendMessage("§7» §a" + formatDay.format(new Date(start)) + " §7-§a " + formatHour.format(new Date(start)) + " §8|| §c" + formatDay.format(new Date(end)) + " §7-§c " + formatHour.format(new Date(end)) + " §8|| §7" + TimeFormat.getInMinutes(dur) + " Minuten");
+                                                double minutes = TimeFormat.getInMinutesString(dur);
+                                                p.sendMessage("§7» §a" + formatDay.format(new Date(start)) + " §7-§a " + formatHour.format(new Date(start)) + " §8|| §c" + formatDay.format(new Date(end)) + " §7-§c " + formatHour.format(new Date(end)) + " §8|| §7" + minutes + (minutes == 1 ? " Minute" : " Minuten"));
                                             });
                                         } else {
                                             p.sendMessage("§7Keine Einträge.");
                                         }
                                     } else {
                                         p.sendMessage(prefix + "§7Die Seitenanzahl muss über 0 sein.");
+                                    }
+                                } else {
+                                    p.sendMessage(prefix + "§7Es sind keine Einträge im Log von §c" + teamMember.getName() + " §7verfügbar.");
+                                }
+                            } else {
+                                p.sendMessage(prefix + "§7Es ist kein Log über §c" + teamMember.getName() + " §7verfügbar.");
+                            }
+                        } else {
+                            p.sendMessage(prefix + "§7Der Spieler §c" + args[1] + " §7existiert nicht.");
+                        }
+                    } else {
+                        p.sendMessage(prefix + noPerm("team.mod"));
+                    }
+                } else {
+                    s.sendMessage(prefix + "Du musst ein Spieler sein");
+                }
+            } else if(args[0].equalsIgnoreCase("logtime")) {
+                if(s instanceof Player) {
+                    Player p = (Player) s;
+                    if (p.hasPermission("team.mod") || Utils.getInstance().getManager().getPlayerManager().get(p.getUniqueId()).isTeamHead()) {
+                        User teamMember = Utils.getInstance().getManager().getPlayerManager().getByName(args[1].toLowerCase());
+                        if (teamMember != null) {
+                            TeamLog teamLog = Utils.getInstance().getManager().getLogManager().get(teamMember.getKey());
+                            if (teamLog != null) {
+                                List<HashMap<String, Long>> entries = teamLog.getEntries();
+                                if (entries.size() > 0) {
+                                    long days;
+                                    try {
+                                        days = Long.parseLong(args[2]);
+                                    } catch (NumberFormatException e) {
+                                        p.sendMessage(prefix + "§cArgument 3 §7muss eine Zahl sein.");
+                                        return true;
+                                    }
+                                    if(days > 0) {
+                                        long finalDays = days;
+                                        List<Long> starts = entries.stream().map(a -> a.get("start"))
+                                                .filter(a -> a >= (System.currentTimeMillis() - (finalDays * 86400000))).collect(Collectors.toList());
+                                        long totalTime = starts.stream().mapToLong(a -> entries.stream().filter(e -> e.get("start").longValue() == a).findAny().get().get("end") - a).sum();
+                                        double timeFormat = TimeFormat.getInHoursDouble(totalTime);
+                                        p.sendMessage(prefix + "§c" + teamMember.getName() + " §7war in den letzten " + finalDays + " " + (finalDays == 1 ? "Tage" : "Tagen") + " §c" + timeFormat + " " + (timeFormat == 1 ? "Stunde" : "Stunden") + " §7online.");
+                                    } else {
+                                        p.sendMessage(prefix + "§7Die Tageszahl muss über 0 sein.");
                                     }
                                 } else {
                                     p.sendMessage(prefix + "§7Es sind keine Einträge im Log von §c" + teamMember.getName() + " §7verfügbar.");
@@ -393,11 +533,11 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                         else {
                                             p.sendMessage("§7§l| §aGeld §7» Du möchtest §2Infinity§7? Ok, du bekommst es:\n\n");
                                             p.sendMessage("§7§l| §aGeld §7» Der Kontostand des Spielers §a" + p.getName() + " §7wurde durch §aCONSOLE §7auf §a0A §7gesetzt.");
-                                            return false;
+                                            return true;
                                         }
                                     } catch (NumberFormatException ignored) {
                                         p.sendMessage(prefix + "§cArgument 2 §7muss eine positive Zahl sein.");
-                                        return false;
+                                        return true;
                                     }
                                     if (value > 0) {
                                         if(Arrays.stream(Teams.values()).map(Enum::toString).anyMatch(a -> a.equalsIgnoreCase(args[3]))) {
@@ -405,11 +545,11 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                                             if ((teamAccount.getBalance() - value) >= 0) {
                                                 if ((uTo.getBalance() + value) < 0) {
                                                     p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
-                                                    return false;
+                                                    return true;
                                                 }
                                                 if ((teamAccount.getBalance()) < 0) {
                                                     p.sendMessage(prefix + "§7Der Kontostand darf nicht ins §cMinus §7geraten.");
-                                                    return false;
+                                                    return true;
                                                 }
                                                 uTo.depositMoney(value);
                                                 teamAccount.withdrawMoney(value);
@@ -459,9 +599,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 r.add("duty");
             }
             if(s.hasPermission("team.mod"))
-                r.addAll(Lists.newArrayList("sethead", "add", "kick"));
+                r.addAll(Lists.newArrayList("sethead", "add", "kick", "log", "logtime"));
             if(s instanceof Player && Utils.getInstance().getManager().getPlayerManager().get(((Player) s).getUniqueId()).isTeamHead())
-                r.addAll(Lists.newArrayList("add", "kick", "pay"));
+                r.addAll(Lists.newArrayList("add", "kick", "pay", "log"));
             return Common.getInstance().removeAutoComplete(r, args[0]);
         } else if(args.length == 2) {
             switch(args[0].toLowerCase()) {
@@ -470,6 +610,8 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                         return Common.getInstance().removeAutoComplete(Arrays.stream(Teams.values()).map(Enum::toString).collect(Collectors.toList()), args[1]);
                 case "add":
                 case "kick":
+                case "log":
+                case "logtime":
                     if(s.hasPermission("team.mod") || (s instanceof Player && Utils.getInstance().getManager().getPlayerManager().get(((Player) s).getUniqueId()).isTeamHead()))
                         return Common.getInstance().removeAutoComplete(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()), args[1]);
                 case "pay":
@@ -509,7 +651,8 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             s.sendMessage(prefix + "§c/team sethead [Team] [Spieler] §7| Setzt den Teamleiter\n" +
                             prefix + "§c/team add [Spieler] [Team] §7| Fügt einen Spieler zu einem Team hinzu\n" +
                             prefix + "§c/team kick [Spieler] [Team] §7| Entfernt einen Spieler aus einem Team\n" +
-                            prefix + "§c/team log [Spieler] <Seite> §7| Zeigt die Zeit, die der Spieler im Dienst war");
+                            prefix + "§c/team log [Spieler] <Seite> §7| Zeigt die Zeit, die der Spieler im Dienst war\n" +
+                            prefix + "§c/team logtime [Spieler] [Zeit in Tagen] §7| Zeigt die Zeit, die der Spieler im Zeitraum im Dienst war");
         }
         if(s instanceof Player) {
             if(Utils.getInstance().getManager().getPlayerManager().get(((Player) s).getUniqueId()).isTeamHead()) {
