@@ -166,18 +166,21 @@ public class Board {
         String prefix = Common.getInstance().getChat().getGroupPrefix("", group).replaceAll("(&([a-z0-9]))", "§$2");
         String suffix = Common.getInstance().getChat().getGroupSuffix("", group).replaceAll("(&([a-z0-9]))", "§$2");
         int teamWeight = 100 - weight;
+        if(group.equalsIgnoreCase("member"))
+            teamWeight = 80;
+        else if(group.equalsIgnoreCase("neuling"))
+            teamWeight = 82;
         Team t;
-        ChatColor color = (Common.getInstance().getDutyPlayers().containsKey(p.getUniqueId()) ? ChatColor.getByChar(suffix.replace("§", "")) : ChatColor.GOLD);
         if(scoreboard.getTeam(String.valueOf(teamWeight)) == null) {
             t = scoreboard.registerNewTeam(String.valueOf(teamWeight));
-            t.setColor(color);
+            t.setColor(ChatColor.getByChar(suffix.replace("§", "")));
             t.setPrefix((prefix.equalsIgnoreCase("Administrator") ? "Admin" : prefix) + " §8● " + suffix);
         } else
             t = scoreboard.getTeam(String.valueOf(teamWeight));
         scoreboard.getTeams().stream().filter(ts -> ts.getEntries().contains(p.getName())).forEach(ts -> ts.removeEntry(p.getName()));
         t.addEntry(p.getName());
-        p.setPlayerListName(color + prefix + " §8● " + color + p.getName());
-        p.setDisplayName(color + prefix + " §8● " + color + p.getName());
+        p.setPlayerListName(suffix + prefix + " §8● " + suffix + p.getName());
+        p.setDisplayName(suffix + prefix + " §8● " + suffix + p.getName());
         //Bukkit.getOnlinePlayers().forEach(all -> all.setScoreboard(scoreboard));
     }
 
