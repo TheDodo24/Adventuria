@@ -837,7 +837,8 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                             String name = args[1].toLowerCase();
                             BankAccount bankAccount = Economy.getInstance().getManager().getBankManager().get(name);
                             if(bankAccount != null) {
-                                if(bankAccount.getMembers().contains(p.getUniqueId())  || bankAccount.getOwners().contains(p.getUniqueId())) {
+                                if(bankAccount.getMembers().contains(p.getUniqueId())  || bankAccount.getOwners().contains(p.getUniqueId())
+                                        || (bankAccount.getKey().startsWith("team-") && p.hasPermission("bank.log.teamaccounts"))) {
                                     BankLog bankLog = Economy.getInstance().getManager().getLogHandler().getOrGenerate(bankAccount.getKey());
                                     Map<String, Map<String, Object>> log = bankLog.getHistory();
                                     p.sendMessage("§7|-----| §2Transkationen §7|-----|");
@@ -1163,7 +1164,8 @@ public class BankCommand implements CommandExecutor, TabCompleter {
                             String name = args[1].toLowerCase();
                             BankAccount bankAccount = Economy.getInstance().getManager().getBankManager().get(name);
                             if(bankAccount != null) {
-                                if(bankAccount.getMembers().contains(p.getUniqueId())  || bankAccount.getOwners().contains(p.getUniqueId())) {
+                                if(bankAccount.getMembers().contains(p.getUniqueId())  || bankAccount.getOwners().contains(p.getUniqueId())
+                                        || (bankAccount.getKey().startsWith("team-") && p.hasPermission("bank.log.teamaccounts"))) {
                                     int site;
                                     try {
                                         site = Integer.parseInt(args[2]);

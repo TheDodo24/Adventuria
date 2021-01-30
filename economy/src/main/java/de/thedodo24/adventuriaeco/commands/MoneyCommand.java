@@ -16,8 +16,10 @@ import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class MoneyCommand implements CommandExecutor, TabCompleter {
@@ -44,6 +46,15 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         balanceHelpInfo.setColor(ChatColor.GRAY);
         balanceHelp.addExtra(balanceHelpCommand);
         balanceHelp.addExtra(balanceHelpInfo);
+        TextComponent topHelp = new TextComponent(prefix);
+        TextComponent topHelpCommand = new TextComponent("/money top");
+        TextComponent topHelpInfo = new TextComponent(" | Zeigt die vermögensreichsten Spieler");
+        topHelpCommand.setColor(ChatColor.GREEN);
+        topHelpCommand.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/money top"));
+        topHelpCommand.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("/money top").create()));
+        topHelpInfo.setColor(ChatColor.GRAY);
+        topHelp.addExtra(balanceHelpCommand);
+        topHelp.addExtra(balanceHelpInfo);
 
 
         TextComponent takeHelp = new TextComponent(prefix);
@@ -79,6 +90,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             Player a = (Player) p;
             a.spigot().sendMessage(payHelp);
             a.spigot().sendMessage(balanceHelp);
+            a.spigot().sendMessage(topHelp);
             if(a.hasPermission("money.admin")) {
                 a.sendMessage("\n");
                 a.spigot().sendMessage(giveHelp);
@@ -89,7 +101,8 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             p.sendMessage("/money give [Spieler] [Betrag]\n" +
                     "/money take [Spieler] [Betrag]\n" +
                     "/money set [Spieler] [Betrag]\n" +
-                    "/money balance [Spieler]");
+                    "/money balance [Spieler]\n" +
+                    "/money top");
         }
     }
 
@@ -114,6 +127,11 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                 if(args[0].equalsIgnoreCase("balance") || args[0].equalsIgnoreCase("bal")) {
                     String money = format(Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId()).getBalance());
                     p.sendMessage(prefix + "§7Dein Kontostand beträgt §a" + money);
+                } else if(args[0].equalsIgnoreCase("top")) {
+                    HashMap<User, Long> top = Economy.getInstance().getManager().getPlayerManager().getHighestMoney();
+                    p.sendMessage("§7|------| §aReichste Spieler §7|------|");
+                    AtomicInteger a = new AtomicInteger(1);
+                    top.forEach((user, val) -> p.sendMessage("§7"+a.getAndIncrement()+". §a" + user.getName() + "§7: " + format(val)));
                 } else {
                     sendHelpMessage(p);
                 }
@@ -139,66 +157,19 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
             if(args[0].equalsIgnoreCase("pay")) {
                 if(s instanceof Player) {
                     Player p = (Player) s;
-                        User pMoney = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
-                        String arg = args[2];
-                        if(arg.contains(","))
-                            arg = arg.replace(",", ".");
-                        long value;
-                        try {
-                            value = (long) (Double.parseDouble(arg) * 100);
-                        } catch(NumberFormatException e) {
-                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
-                            return false;
-                        }
-                        if(value > 0) {
-                            if((pMoney.getBalance() - value) >= 0) {
-                                String name = "";
-                                if(args[1].equalsIgnoreCase("staatskasse")) {
-                                    Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(value);
-                                    name = "Staatskasse";
-                                } else {
-                                    User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
-                                    if(oMoney != null) {
-                                        if(!oMoney.getKey().equals(p.getUniqueId())) {
-                                            oMoney.depositMoney(value);
-                                            name = oMoney.getName();
-                                            Player other;
-                                            if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
-                                                other.sendMessage(prefix + "§a" + p.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
-                                            }
-                                        } else {
-                                            p.sendMessage(prefix + "§7Du kannst dir nicht selbst Geld überweisen.");
-                                            return false;
-                                        }
-                                    } else {
-                                        p.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
-                                        return false;
-                                    }
-                                }
-                                pMoney.withdrawMoney(value);
-                                p.sendMessage(prefix + "§7Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
-                            } else {
-                                p.sendMessage(prefix + "§7Du hast nicht genügend Geld.");
-                            }
-                        } else {
-                            p.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
-                        }
-                } else {
-                    s.sendMessage("[Adventuria] Du musst ein Spieler sein.");
-                }
-            } else if(args[0].equalsIgnoreCase("give")) {
-                if(s.hasPermission("money.give")) {
-                        String arg = args[2];
-                        if(arg.contains(","))
-                            arg = arg.replace(",", ".");
-                        long value;
-                        try {
-                            value = (long) (Double.parseDouble(arg) * 100);
-                        } catch(NumberFormatException e) {
-                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
-                            return false;
-                        }
-                        if(value > 0) {
+                    User pMoney = Economy.getInstance().getManager().getPlayerManager().get(p.getUniqueId());
+                    String arg = args[2];
+                    if(arg.contains(","))
+                        arg = arg.replace(",", ".");
+                    long value;
+                    try {
+                        value = (long) (Double.parseDouble(arg) * 100);
+                    } catch(NumberFormatException e) {
+                        s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
+                        return false;
+                    }
+                    if(value > 0) {
+                        if((pMoney.getBalance() - value) >= 0) {
                             String name = "";
                             if(args[1].equalsIgnoreCase("staatskasse")) {
                                 Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(value);
@@ -206,111 +177,158 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                             } else {
                                 User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
                                 if(oMoney != null) {
-                                    oMoney.depositMoney(value);
-                                    name = oMoney.getName();
-                                    Player other;
-                                    if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
-                                        other.sendMessage(prefix + "§a" + s.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7gegeben.");
+                                    if(!oMoney.getKey().equals(p.getUniqueId())) {
+                                        oMoney.depositMoney(value);
+                                        name = oMoney.getName();
+                                        Player other;
+                                        if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
+                                            other.sendMessage(prefix + "§a" + p.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
+                                        }
+                                    } else {
+                                        p.sendMessage(prefix + "§7Du kannst dir nicht selbst Geld überweisen.");
+                                        return false;
                                     }
                                 } else {
-                                    s.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
+                                    p.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
                                     return false;
                                 }
                             }
-                            s.sendMessage(prefix + "Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7gegeben.");
-                            String finalName = name;
-                            Bukkit.getOnlinePlayers().forEach(all -> {
-                                if(all.hasPermission("money.notify"))
-                                    all.sendMessage(prefix + "§a" + s.getName() + " §7hat §a" + finalName + " §7" + formatValue(((Long) value).doubleValue() / 100) + " §7gegeben.");
-                            });
+                            pMoney.withdrawMoney(value);
+                            p.sendMessage(prefix + "§7Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7überwiesen.");
                         } else {
-                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                            p.sendMessage(prefix + "§7Du hast nicht genügend Geld.");
                         }
+                    } else {
+                        p.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                    }
+                } else {
+                    s.sendMessage("[Adventuria] Du musst ein Spieler sein.");
+                }
+            } else if(args[0].equalsIgnoreCase("give")) {
+                if(s.hasPermission("money.give")) {
+                    String arg = args[2];
+                    if(arg.contains(","))
+                        arg = arg.replace(",", ".");
+                    long value;
+                    try {
+                        value = (long) (Double.parseDouble(arg) * 100);
+                    } catch(NumberFormatException e) {
+                        s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
+                        return false;
+                    }
+                    if(value > 0) {
+                        String name = "";
+                        if(args[1].equalsIgnoreCase("staatskasse")) {
+                            Economy.getInstance().getManager().getBankManager().get("staatskasse").depositMoney(value);
+                            name = "Staatskasse";
+                        } else {
+                            User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
+                            if(oMoney != null) {
+                                oMoney.depositMoney(value);
+                                name = oMoney.getName();
+                                Player other;
+                                if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
+                                    other.sendMessage(prefix + "§a" + s.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7gegeben.");
+                                }
+                            } else {
+                                s.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
+                                return false;
+                            }
+                        }
+                        s.sendMessage(prefix + "Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7gegeben.");
+                        String finalName = name;
+                        Bukkit.getOnlinePlayers().forEach(all -> {
+                            if(all.hasPermission("money.notify"))
+                                all.sendMessage(prefix + "§a" + s.getName() + " §7hat §a" + finalName + " §7" + formatValue(((Long) value).doubleValue() / 100) + " §7gegeben.");
+                        });
+                    } else {
+                        s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                    }
                 } else {
                     s.sendMessage(noPerm("money.give"));
                 }
             } else if(args[0].equalsIgnoreCase("set")) {
                 if(s.hasPermission("money.set")) {
-                        String arg = args[2];
-                        if(arg.contains(","))
-                            arg = arg.replace(",", ".");
-                        long value;
-                        try {
-                            value = (long) (Double.parseDouble(arg) * 100);
-                        } catch(NumberFormatException e) {
-                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
-                            return false;
-                        }
-                        if(value >= 0) {
-                            String name = "";
-                            if(args[1].equalsIgnoreCase("staatskasse")) {
-                                name = "Staatskasse";
-                                Economy.getInstance().getManager().getBankManager().get("staatskasse").setBalance(value);
-                            } else {
-                                User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
-                                if(oMoney != null) {
-                                    oMoney.setBalance(value);
-                                    name = oMoney.getName();
-                                    Player other;
-                                    if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
-                                        other.sendMessage(prefix + "§a" + s.getName() + " §7hat deinen Kontostand auf §a" + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
-                                    }
-                                } else {
-                                    s.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
-                                }
-                            }
-                            s.sendMessage(prefix + "Du hast den Kontostand von §a" + name + " §7auf§a " + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
-                            String finalName = name;
-                            Bukkit.getOnlinePlayers().forEach(all -> {
-                                if(all.hasPermission("money.notify"))
-                                    all.sendMessage(prefix + "§a" + s.getName() + " §7hat den Kontostand von §a" + finalName + "§7 auf §a" + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
-                            });
+                    String arg = args[2];
+                    if(arg.contains(","))
+                        arg = arg.replace(",", ".");
+                    long value;
+                    try {
+                        value = (long) (Double.parseDouble(arg) * 100);
+                    } catch(NumberFormatException e) {
+                        s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
+                        return false;
+                    }
+                    if(value >= 0) {
+                        String name = "";
+                        if(args[1].equalsIgnoreCase("staatskasse")) {
+                            name = "Staatskasse";
+                            Economy.getInstance().getManager().getBankManager().get("staatskasse").setBalance(value);
                         } else {
-                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                            User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
+                            if(oMoney != null) {
+                                oMoney.setBalance(value);
+                                name = oMoney.getName();
+                                Player other;
+                                if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
+                                    other.sendMessage(prefix + "§a" + s.getName() + " §7hat deinen Kontostand auf §a" + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
+                                }
+                            } else {
+                                s.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
+                            }
                         }
+                        s.sendMessage(prefix + "Du hast den Kontostand von §a" + name + " §7auf§a " + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
+                        String finalName = name;
+                        Bukkit.getOnlinePlayers().forEach(all -> {
+                            if(all.hasPermission("money.notify"))
+                                all.sendMessage(prefix + "§a" + s.getName() + " §7hat den Kontostand von §a" + finalName + "§7 auf §a" + formatValue(((Long) value).doubleValue() / 100) + " §7gesetzt.");
+                        });
+                    } else {
+                        s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                    }
                 } else {
                     s.sendMessage(noPerm("money.set"));
                 }
             } else if(args[0].equalsIgnoreCase("take")) {
                 if(s.hasPermission("money.take")) {
-                        String arg = args[2];
-                        if(arg.contains(","))
-                            arg = arg.replace(",", ".");
-                        long value;
-                        try {
-                            value = (long) (Double.parseDouble(arg) * 100);
-                        } catch(NumberFormatException e) {
-                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
-                            return false;
-                        }
-                        if(value >= 0) {
-                            String name = "";
-                            if(args[1].equalsIgnoreCase("staatskasse")) {
-                                name = "Staatskasse";
-                                Economy.getInstance().getManager().getBankManager().get("staatskasse").withdrawMoney(value);
-                            } else {
-                                User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
-                                if(oMoney != null) {
-                                    name = oMoney.getName();
-                                    oMoney.withdrawMoney(value);
-                                    Player other;
-                                    if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
-                                        other.sendMessage(prefix + "§a" + s.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7genommen.");
-                                    }
-                                } else {
-                                    s.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
-                                }
-
-                            }
-                            s.sendMessage(prefix + "Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7genommen.");
-                            String finalName = name;
-                            Bukkit.getOnlinePlayers().forEach(all -> {
-                                if(all.hasPermission("money.notify"))
-                                    all.sendMessage(prefix + "§a" + s.getName() + " §7hat §a" + finalName + " §7" + formatValue(((Long) value).doubleValue() / 100) + " §7genommen.");
-                            });
+                    String arg = args[2];
+                    if(arg.contains(","))
+                        arg = arg.replace(",", ".");
+                    long value;
+                    try {
+                        value = (long) (Double.parseDouble(arg) * 100);
+                    } catch(NumberFormatException e) {
+                        s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] + ")");
+                        return false;
+                    }
+                    if(value >= 0) {
+                        String name = "";
+                        if(args[1].equalsIgnoreCase("staatskasse")) {
+                            name = "Staatskasse";
+                            Economy.getInstance().getManager().getBankManager().get("staatskasse").withdrawMoney(value);
                         } else {
-                            s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                            User oMoney = Economy.getInstance().getManager().getPlayerManager().getByName(args[1]);
+                            if(oMoney != null) {
+                                name = oMoney.getName();
+                                oMoney.withdrawMoney(value);
+                                Player other;
+                                if((other = Bukkit.getPlayer(oMoney.getKey())) != null) {
+                                    other.sendMessage(prefix + "§a" + s.getName() + " §7hat dir §a" + formatValue(((Long) value).doubleValue() / 100) + " §7genommen.");
+                                }
+                            } else {
+                                s.sendMessage(prefix + "§7Der Spieler §a" + args[1] + " §7existiert nicht.");
+                            }
+
                         }
+                        s.sendMessage(prefix + "Du hast §a" + name + " " + formatValue(((Long) value).doubleValue() / 100) + " §7genommen.");
+                        String finalName = name;
+                        Bukkit.getOnlinePlayers().forEach(all -> {
+                            if(all.hasPermission("money.notify"))
+                                all.sendMessage(prefix + "§a" + s.getName() + " §7hat §a" + finalName + " §7" + formatValue(((Long) value).doubleValue() / 100) + " §7genommen.");
+                        });
+                    } else {
+                        s.sendMessage(prefix + "§aArgument 2 §7muss eine positive Zahl sein. §8(" + args[2] +")");
+                    }
                 } else {
                     s.sendMessage(noPerm("money.take"));
                 }
@@ -328,7 +346,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         if(commandSender instanceof Player) {
             Player p = (Player) commandSender;
             if(args.length == 1) {
-                List<String> r = Lists.newArrayList("pay", "balance");
+                List<String> r = Lists.newArrayList("pay", "balance", "top");
                 if(p.hasPermission("money.admin")) {
                     r.add("give");
                     r.add("take");
