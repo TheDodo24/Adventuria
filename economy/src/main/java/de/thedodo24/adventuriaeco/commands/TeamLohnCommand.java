@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import de.thedodo24.adventuriaeco.Economy;
 import de.thedodo24.commonPackage.Common;
 import de.thedodo24.commonPackage.economy.BankAccount;
+import de.thedodo24.commonPackage.economy.BankLog;
+import de.thedodo24.commonPackage.economy.BankLogType;
 import de.thedodo24.commonPackage.player.User;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
@@ -104,6 +106,8 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                         BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
                         if (teamAccount != null) {
                             Bukkit.dispatchCommand(s, "bank admin give " + teamAccount.getKey() + " " + args[2]);
+                            BankLog log = Economy.getInstance().getManager().getLogHandler().get(teamAccount.getKey());
+                            log.addHistory(System.currentTimeMillis(), BankLogType.ADMIN_GIVE, s.getName(), Long.parseLong(args[2]) * 100);
                         } else {
                             s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
                         }
@@ -115,6 +119,8 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                         BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
                         if (teamAccount != null) {
                             Bukkit.dispatchCommand(s, "bank admin take " + teamAccount.getKey() + " " + args[2]);
+                            BankLog log = Economy.getInstance().getManager().getLogHandler().get(teamAccount.getKey());
+                            log.addHistory(System.currentTimeMillis(), BankLogType.ADMIN_TAKE, s.getName(), Long.parseLong(args[2]) * 100);
                         } else {
                             s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
                         }
@@ -126,13 +132,15 @@ public class TeamLohnCommand implements CommandExecutor, TabCompleter {
                         BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().get("team-" + args[1].toLowerCase());
                         if (teamAccount != null) {
                             Bukkit.dispatchCommand(s, "bank admin set " + teamAccount.getKey() + " " + args[2]);
+                            BankLog log = Economy.getInstance().getManager().getLogHandler().get(teamAccount.getKey());
+                            log.addHistory(System.currentTimeMillis(), BankLogType.ADMIN_SET, s.getName(), Long.parseLong(args[2]) * 100);
                         } else {
                             s.sendMessage(prefix + "§7Das Teamkonto §c" + args[1].toLowerCase() + " §7existiert nicht.");
                         }
                     } else {
                         s.sendMessage(noPerm("tlohn.admin"));
                     }
-                } else if(args[0].equalsIgnoreCase("pay")) {
+                } else if(args[0].equalsIgnoreCase("pay453423er2r2")) {
                     if(s instanceof Player) {
                         Player p = (Player) s;
                         BankAccount teamAccount = Economy.getInstance().getManager().getBankManager().getAccountForPlayer(p);
